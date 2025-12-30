@@ -539,6 +539,32 @@ button:focus {
   100% { background: #ffcccc; }
 }
 
+/* ===== VIOLATION WARNING OVERLAY STYLES ===== */
+#violationWarningOverlay {
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 0, 0, 0.95);
+  color: white;
+  padding: 25px 35px;
+  border-radius: 15px;
+  z-index: 10002;
+  text-align: center;
+  font-weight: bold;
+  font-size: 20px;
+  border: 4px solid white;
+  box-shadow: 0 0 40px red;
+  animation: pulse 1s infinite;
+  max-width: 80%;
+  min-width: 300px;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 /* ===== ERROR MESSAGE STYLES ===== */
 .error-message {
   color: #ff3333;
@@ -1028,39 +1054,6 @@ button:focus {
   20%, 40%, 60%, 80% { transform: translateX(calc(-50% + 5px)); }
 }
 
-@keyframes slideIn {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes slideOut {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-20px); opacity: 0; }
-}
-
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-10px); }
-  20% { opacity: 1; transform: translateY(0); }
-  80% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-10px); }
-}
-
-/* ===== CHROME MENU BLUR OVERLAY STYLES ===== */
-#chromeMenuBlurOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  z-index: 2147483647;
-  pointer-events: none;
-  display: none;
-  transition: opacity 0.3s ease;
-}
-
 /* ===== FULL-SCREEN WARNING OVERLAY STYLES ===== */
 #fullscreen-warning-overlay {
   position: fixed;
@@ -1322,17 +1315,6 @@ button:focus {
   color: white;
 }
 
-@media (max-width: 600px) {
-  .resume-options {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .resume-btn {
-    width: 80%;
-  }
-}
-
 /* ===== RESPONSIVE STYLES ===== */
 @media (max-width: 600px) {
   #accessDeniedBox h1 {
@@ -1394,6 +1376,18 @@ button:focus {
   
   .question-image {
     max-height: 350px;
+  }
+  
+  .tab-switch-warning {
+    font-size: 14px;
+    padding: 15px 20px;
+    min-width: 280px;
+  }
+  
+  #violationWarningOverlay {
+    font-size: 16px;
+    padding: 15px 20px;
+    min-width: 250px;
   }
 }
 
@@ -1717,9 +1711,245 @@ let autoSaveIndicator = null;
 let powerLossRecoveryData = null;
 let resumeInProgress = false;
 
+// SYSTEM TRAY SECURITY VARIABLES
+let systemTrayViolations = 0;
+const MAX_SYSTEM_TRAY_VIOLATIONS = 3;
+let lastSystemTrayViolationTime = 0;
+let systemTrayCheckInterval = null;
+let systemTrayDetector = null;
+
 const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
+
+// ===== SYSTEM TRAY & SEARCH BAR SECURITY CLASS =====
+class SystemTrayViolationDetector {
+    constructor() {
+        this.violationCount = 0;
+        this.maxViolations = 3;
+        this.lastViolationTime = 0;
+        this.systemTrayCheckInterval = null;
+        console.log('🔒 System Tray & Search Bar Security System Initialized');
+    }
+    
+    enable() {
+        this.setupDetection();
+        this.startPeriodicChecks();
+        this.violationCount = 0;
+        this.lastViolationTime = 0;
+        console.log('✅ System Tray Security Enabled');
+        return this;
+    }
+    
+    disable() {
+        this.stopPeriodicChecks();
+        console.log('🔓 System Tray Security Disabled');
+    }
+    
+    setupDetection() {
+        // 1. WINDOWS/META KEY DETECTION (Opens Start Menu/Search)
+        document.addEventListener('keydown', (e) => {
+            if (!examInProgress) return;
+            
+            const currentTime = Date.now();
+            if (currentTime - this.lastViolationTime < 500) return;
+            
+            // Windows/Command key (Meta key) - Opens Start Menu/Search
+            if (e.key === 'Meta' || e.key === 'Win' || e.keyCode === 91 || e.keyCode === 92) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Windows key pressed (opens Start Menu/Search)');
+                return false;
+            }
+            
+            // Windows+S (Windows Search)
+            if ((e.key === 's' || e.key === 'S') && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Windows+S pressed (opens Windows Search)');
+                return false;
+            }
+            
+            // Windows+R (Run dialog)
+            if ((e.key === 'r' || e.key === 'R') && e.metaKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Windows+R pressed (opens Run dialog)');
+                return false;
+            }
+            
+            // Windows+X (Power User menu)
+            if ((e.key === 'x' || e.key === 'X') && e.metaKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Windows+X pressed (opens Power User menu)');
+                return false;
+            }
+            
+            // Windows+D (Show desktop)
+            if ((e.key === 'd' || e.key === 'D') && e.metaKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Windows+D pressed (minimizes all windows)');
+                return false;
+            }
+            
+            // Alt+Tab (Task switching)
+            if (e.key === 'Tab' && e.altKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Alt+Tab pressed (task switching)');
+                return false;
+            }
+            
+            // Windows+Tab (Task View)
+            if (e.key === 'Tab' && e.metaKey) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.handleViolation('Windows+Tab pressed (Task View)');
+                return false;
+            }
+        }, true);
+    }
+    
+    startPeriodicChecks() {
+        if (this.systemTrayCheckInterval) clearInterval(this.systemTrayCheckInterval);
+        
+        this.systemTrayCheckInterval = setInterval(() => {
+            if (!examInProgress) return;
+            
+            // Check if window lost focus without tab switch (likely system tray)
+            if (!document.hasFocus()) {
+                const currentTime = Date.now();
+                if (currentTime - lastTabSwitchTime > 3000) {
+                    // Window lost focus but no recent tab switch - likely system tray
+                    this.handleViolation('Window focus lost to system tray/taskbar');
+                }
+            }
+        }, 1000);
+    }
+    
+    stopPeriodicChecks() {
+        if (this.systemTrayCheckInterval) {
+            clearInterval(this.systemTrayCheckInterval);
+            this.systemTrayCheckInterval = null;
+        }
+    }
+    
+    handleViolation(violationType) {
+        if (!examInProgress) return;
+        
+        const currentTime = Date.now();
+        
+        // Prevent counting multiple violations in rapid succession
+        if (currentTime - this.lastViolationTime < 1000) {
+            console.log(`Ignoring rapid system tray violation: ${violationType}`);
+            return;
+        }
+        
+        this.lastViolationTime = currentTime;
+        this.violationCount++;
+        
+        console.log(`🚨 System Tray Violation #${this.violationCount}: ${violationType}`);
+        
+        // Show warning to student
+        this.showWarning(this.violationCount, violationType);
+        
+        // SUBMIT EXAM AFTER 3 VIOLATIONS (Same as tab switches!)
+        if (this.violationCount >= this.maxViolations) {
+            console.log('🚨 3 system tray violations detected - submitting exam!');
+            
+            // Show final warning
+            this.showViolationOverlay(`
+                🚨 EXAM VIOLATION DETECTED
+                <br><br>
+                ${violationType}
+                <br><br>
+                <strong>3 system tray violations reached!</strong>
+                <br>
+                Submitting exam in 3 seconds...
+            `, 'red');
+            
+            // Submit exam after delay
+            setTimeout(() => {
+                if (examInProgress) {
+                    submitExam();
+                }
+            }, 3000);
+        }
+    }
+    
+    showWarning(count, violationType) {
+        const messages = [
+            `⚠️ System Access: ${violationType} (1/${this.maxViolations})`,
+            `⚠️ System Access: ${violationType} (2/${this.maxViolations}) - One more violation will submit exam!`,
+            `🚨 3 system tray violations detected! ${violationType} - Submitting exam...`
+        ];
+        
+        const messageIndex = Math.min(count - 1, 2);
+        showToast(messages[messageIndex], 'error', 5000);
+        
+        // Show big warning overlay for serious violations
+        if (count >= 2) {
+            this.showViolationOverlay(`
+                ⚠️ SYSTEM TRAY VIOLATION
+                <br><br>
+                ${violationType}
+                <br><br>
+                <strong>Count: ${count}/${this.maxViolations}</strong>
+                <br>
+                Accessing system tray, taskbar, or Windows shortcuts is prohibited!
+            `, 'orange');
+        }
+    }
+    
+    showViolationOverlay(message, color) {
+        const existingOverlay = document.getElementById('violationWarningOverlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        const overlay = document.createElement('div');
+        overlay.id = 'violationWarningOverlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${color === 'red' ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 165, 0, 0.95)'};
+            color: white;
+            padding: 25px 35px;
+            border-radius: 15px;
+            z-index: 10002;
+            text-align: center;
+            font-weight: bold;
+            font-size: 20px;
+            border: 4px solid white;
+            box-shadow: 0 0 40px ${color === 'red' ? 'red' : 'orange'};
+            animation: pulse 1s infinite;
+            max-width: 80%;
+            min-width: 300px;
+        `;
+        
+        overlay.innerHTML = message;
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => {
+            overlay.style.animation = 'fadeOut 0.5s ease';
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 500);
+        }, 5000);
+    }
+    
+    reset() {
+        this.violationCount = 0;
+        this.lastViolationTime = 0;
+        console.log('🔄 System tray violations reset');
+    }
+}
 
 // ===== IMAGE HANDLING FUNCTIONS =====
 async function preloadAllImages() {
@@ -2337,8 +2567,9 @@ function startExamWithRecovery(progressData) {
     startTimer();
     updateNavButtons();
     
-    // Enable security
+    // Enable all security systems
     examSecurity.enable();
+    systemTrayDetector.enable();
     
     showToast('✅ Exam resumed from saved progress', 'success', 4000);
     
@@ -2744,6 +2975,12 @@ document.addEventListener('visibilitychange', function() {
         
         console.log(`Tab switch detected: ${tabSwitchCount}/3`);
         showTabSwitchWarning(tabSwitchCount);
+        
+        // Also check if this might be a system tray click
+        if (currentTime - lastTabSwitchTime > 2000) {
+            // More than 2 seconds since last tab switch - could be system tray
+            systemTrayDetector.handleViolation('Possible system tray/taskbar click');
+        }
         
         if (tabSwitchCount >= 3) {
             console.log('🚨 3 tab switches detected - submitting exam');
@@ -3233,6 +3470,7 @@ function startWithSecurity(ok) {
   
   tabSwitchCount = 0;
   lastTabSwitchTime = 0;
+  systemTrayDetector.reset();
   
   const stuName = document.getElementById('stuName');
   const stuSection = document.getElementById('stuSection');
@@ -3293,6 +3531,9 @@ function startExam(studentKey) {
     renderPalette(); 
     startTimer(); 
     updateNavButtons();
+    
+    // Enable all security systems
+    systemTrayDetector.enable();
     
     sheetReady = true;
     saveExamProgress();
@@ -3780,7 +4021,9 @@ function submitExam() {
   hasSubmitted = true;
   examInProgress = false;
   
+  // Disable all security systems
   examSecurity.disable();
+  systemTrayDetector.disable();
   
   const subjData = {};
   examData.subjectNames.forEach((s, i) => {
@@ -3824,6 +4067,7 @@ function submitExam() {
   console.log("Student:", progress.student.name);
   console.log("Subject Data:", subjData);
   console.log("Tab switches:", tabSwitchCount);
+  console.log("System tray violations:", systemTrayDetector.violationCount);
 
   // ===== GOOGLE FORMS SUBMISSION =====
   // Capture all answers data
@@ -4147,7 +4391,7 @@ window.addEventListener('load', function() {
   console.log('• Maths: Q51-70 (MCQ), Q71-75 (Numerical Input)');
   console.log('🔒 Full-Screen Security Active');
   console.log('📊 Tab Switching Detection: 3 switches total submit exam');
-  console.log('🔒 System Tray Detection: 3 violations total submit exam');
+  console.log('🔒 System Tray & Search Bar Detection: 3 violations total submit exam');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
   console.log('📂 EXTERNAL ANSWER KEY: Loading from answers.txt');
@@ -4162,6 +4406,9 @@ window.addEventListener('load', function() {
   document.getElementById('resumeExamSection').style.display = 'none';
   
   document.getElementById('accessCode').focus();
+  
+  // Initialize System Tray Security
+  systemTrayDetector = new SystemTrayViolationDetector();
   
   // Load external answer key and preload images
   loadAnswerKey().then(success => {
@@ -4179,7 +4426,7 @@ window.addEventListener('load', function() {
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📂 Using external answer key from answers.txt");
-console.log("✅ System ready with external answer key");
+console.log("✅ All security systems ready: Tab switching, System tray, Search bar protection enabled");
 </script>
 </body>
 </html>
