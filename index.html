@@ -325,41 +325,6 @@ button:focus {
   color: white;
 }
 
-/* Numerical question style - cool shadow effect */
-#paletteContainer button.numerical {
-  background: white;
-  color: var(--primary-color);
-  border: 2px solid #4B0082;
-  box-shadow: 0 4px 15px rgba(75, 0, 130, 0.3),
-              0 0 0 2px rgba(255, 255, 255, 0.8),
-              inset 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-#paletteContainer button.numerical:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(75, 0, 130, 0.4),
-              0 0 0 2px rgba(255, 255, 255, 0.9),
-              inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#paletteContainer button.numerical::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, 
-    transparent 30%, 
-    rgba(75, 0, 130, 0.1) 50%, 
-    transparent 70%);
-  z-index: -1;
-  opacity: 0.8;
-}
-
 /* ===== EXAM AREA STYLES ===== */
 #examArea {
   padding: 16px;
@@ -373,18 +338,27 @@ button:focus {
   width: 100%;
   font-weight: bold;
   margin-bottom: 20px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e6e6fa;
 }
 
 #stuInfo {
   flex: 0 0 auto;
   text-align: left;
   white-space: nowrap;
+  font-size: 18px;
+  color: var(--primary-color);
 }
 
 #stuQInfo {
   flex: 1;
   text-align: center;
   white-space: nowrap;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--primary-color);
 }
 
 /* ===== FIXED IMAGE STYLES ===== */
@@ -563,97 +537,6 @@ button:focus {
   0% { background: #ffcccc; }
   50% { background: var(--white); }
   100% { background: #ffcccc; }
-}
-
-/* ===== FONT SIZE ADJUSTMENTS ===== */
-#stuInfo, #stuQInfo, #timerEl {
-  font-size: 20px !important;
-}
-
-/* Increase table row height vertically */
-table td, table th {
-  padding-top: 20px;
-  padding-bottom: 20px;
-}
-
-/* ===== RESPONSIVE STYLES ===== */
-@media (max-width: 600px) {
-  #accessDeniedBox h1 {
-    font-size: 28px;
-  }
-  
-  #callAdminBtn {
-    padding: 10px 14px;
-  }
-  
-  .form-group {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .form-group label {
-    text-align: left;
-    width: auto;
-    margin-bottom: 5px;
-  }
-  
-  #examHeader {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  #stuInfo, #stuQInfo {
-    text-align: center;
-  }
-  
-  .navContainer {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .navBtn {
-    width: 80%;
-    margin-bottom: 10px;
-    margin-left: 0;
-    margin-right: 0;
-  }
-  
-  #paletteContainer {
-    grid-template-columns: repeat(5, 1fr) !important;
-    gap: 6px;
-  }
-  
-  #paletteContainer button {
-    width: 35px;
-    height: 35px;
-    font-size: 12px;
-  }
-  
-  .question-image-container {
-    min-height: 300px;
-  }
-  
-  .question-image {
-    max-height: 350px;
-  }
-}
-
-@media (min-width: 601px) and (max-width: 900px) {
-  #paletteContainer {
-    grid-template-columns: repeat(10, 1fr) !important;
-  }
-}
-
-@media (min-width: 901px) and (max-width: 1200px) {
-  #paletteContainer {
-    grid-template-columns: repeat(15, 1fr) !important;
-  }
-}
-
-@media (min-width: 1201px) {
-  #paletteContainer {
-    grid-template-columns: repeat(20, 1fr) !important;
-  }
 }
 
 /* ===== ERROR MESSAGE STYLES ===== */
@@ -934,7 +817,7 @@ table td, table th {
 .submission-error {
   background: #f8d7da;
   color: #721c24;
-  border: 1px solid #f5c6cb);
+  border: 1px solid #f5c6cb;
 }
 
 .submission-pending {
@@ -1242,23 +1125,6 @@ table td, table th {
   transform: translateY(0);
 }
 
-@keyframes fadeInOut {
-  0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  80% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-}
-
-#chromeMenuWarning {
-  font-size: 16px;
-  border: 2px solid white;
-}
-
-#chromeMenuWarning small {
-  font-size: 12px;
-  opacity: 0.9;
-}
-
 /* ===== POWER LOSS RECOVERY OVERLAY STYLES ===== */
 #powerLossRecoveryOverlay {
   position: fixed;
@@ -1466,6 +1332,88 @@ table td, table th {
     width: 80%;
   }
 }
+
+/* ===== RESPONSIVE STYLES ===== */
+@media (max-width: 600px) {
+  #accessDeniedBox h1 {
+    font-size: 28px;
+  }
+  
+  #callAdminBtn {
+    padding: 10px 14px;
+  }
+  
+  .form-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .form-group label {
+    text-align: left;
+    width: auto;
+    margin-bottom: 5px;
+  }
+  
+  #examHeader {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  #stuInfo, #stuQInfo {
+    text-align: center;
+    width: 100%;
+  }
+  
+  .navContainer {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .navBtn {
+    width: 80%;
+    margin-bottom: 10px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  #paletteContainer {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 6px;
+  }
+  
+  #paletteContainer button {
+    width: 35px;
+    height: 35px;
+    font-size: 12px;
+  }
+  
+  .question-image-container {
+    min-height: 300px;
+  }
+  
+  .question-image {
+    max-height: 350px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  #paletteContainer {
+    grid-template-columns: repeat(10, 1fr) !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+  #paletteContainer {
+    grid-template-columns: repeat(15, 1fr) !important;
+  }
+}
+
+@media (min-width: 1201px) {
+  #paletteContainer {
+    grid-template-columns: repeat(20, 1fr) !important;
+  }
+}
 </style>
 </head>
 
@@ -1566,10 +1514,10 @@ table td, table th {
 </div>
 
 <div id="examArea" style="display:none;">
-  <div id="examHeader" style="display:flex;align-items:center;width:100%;font-weight:bold;">
-    <div id="stuInfo" style="flex:0 0 auto;text-align:left; white-space:nowrap;"></div>
-    <div id="stuQInfo" style="flex:1;text-align:center; white-space:nowrap;"></div>
-    <div style="flex:0 0 auto;text-align:right; white-space:nowrap;">
+  <div id="examHeader">
+    <div id="stuInfo"></div>
+    <div id="stuQInfo"></div>
+    <div>
         <span id="timerEl">🕒 00:00</span>
     </div>
   </div>
@@ -2705,7 +2653,7 @@ class FullScreenSecurity {
             console.error('❌ Failed to enter full-screen:', err);
             this.showWarning();
         }
-}
+    }
 
     setupEventListeners() {
         document.addEventListener('fullscreenchange', () => this.handleFullscreenChange());
@@ -2894,20 +2842,9 @@ function submitNumericalAnswer(questionIndex) {
 }
 
 // ===== GOOGLE FORMS INTEGRATION =====
-const GOOGLE_FORMS = {
-    'A': "https://docs.google.com/forms/d/e/1FAIpQLSe4uuphhY4-p5jdTZqxG_ZZUKAhQZF1ytyNizPXb0n3L85JIw/formResponse",
-    'B': "https://docs.google.com/forms/d/e/1FAIpQLSc3JIcnUysvUtH12QWpHG9wAF4vd1NgEYqeyHwNP0UEkPqi5w/formResponse", 
-    'C': "https://docs.google.com/forms/d/e/1FAIpQLScqYdTGoD4l0jJvzYw0tdBNRSMPepnGtOOowOXYwDFov43KHg/formResponse",
-    'D': "https://docs.google.com/forms/d/e/1FAIpQLSfjAyDlY-5BAF5rPvzQS0AeTI6Vs2Rkri0V6_miA0mRivZAEg/formResponse",
-    'E': "https://docs.google.com/forms/d/e/1FAIpQLSfK6Skl6Uxj8VyGnhhqfdPHcJ8mbcgpzIKLpWFElzdeQSKMgA/formResponse",
-    'F': "https://docs.google.com/forms/d/e/1FAIpQLSeP-Gx2XnUg_Q17asOOeYzkoGtLykVIcQ2W006YTqTpE7xY6g/formResponse",
-    'G': "https://docs.google.com/forms/d/e/1FAIpQLSe1vg_I5XR3ljr-UNFi-MXxUgjdTDyrVbHxqi_dkvtmYGUTEA/formResponse",
-    'H': "https://docs.google.com/forms/d/e/1FAIpQLScyv8cps4StN2UXrsXqNdLu5UBR7t0Vwk8WSnynU2tvracs1g/formResponse",
-    'I': "https://docs.google.com/forms/d/e/1FAIpQLSeyen2hSdhRwztpWnH6lyuL91ZROqwDMKIaa4gN_e-Xvyvb_g/formResponse",
-    'J': "https://docs.google.com/forms/d/e/1FAIpQLSelbDi1n1EKWu7G0I92hTML6vWUO2c55p2dqrEOQ7cWflaSNg/formResponse"
-};
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4uuphhY4-p5jdTZqxG_ZZUKAhQZF1ytyNizPXb0n3L85JIw/formResponse";
 
-const COMMON_FIELDS = {
+const FORM_FIELDS = {
     STUDENT_NAME: "entry.217666919",
     SECTION: "entry.2006392966", 
     ROLL_NUMBER: "entry.547275105",
@@ -2916,46 +2853,9 @@ const COMMON_FIELDS = {
     PHYSICS_MARKS: "entry.1953974928", 
     CHEMISTRY_MARKS: "entry.296331194",
     TOTAL_MARKS: "entry.1289040887",
-    TIMESTAMP: "entry.2139100252"
+    TIMESTAMP: "entry.2139100252",
+    ALL_ANSWERS: "entry.224183536"
 };
-
-const ANSWERS_FIELDS = {
-    'A': "entry.224183536",
-    'B': "entry.2135062491",
-    'C': "entry.66262823",
-    'D': "entry.762314240",
-    'E': "entry.109746612",
-    'F': "entry.813348755",
-    'G': "entry.1184321804",
-    'H': "entry.64526224",
-    'I': "entry.1618336199",
-    'J': "entry.1279707071"
-};
-
-function getFormFields(section) {
-    return {
-        ...COMMON_FIELDS,
-        ALL_ANSWERS: ANSWERS_FIELDS[section]
-    };
-}
-
-function getAssignedForm(studentData) {
-    const forms = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-    
-    if (studentData.roll && !isNaN(studentData.roll)) {
-        const rollNumber = parseInt(studentData.roll);
-        const formIndex = (rollNumber - 1) % forms.length;
-        return forms[formIndex];
-    }
-    
-    const hashString = `${studentData.name}|${studentData.roll}|${studentData.adm}`;
-    let hash = 0;
-    for (let i = 0; i < hashString.length; i++) {
-        hash = ((hash << 5) - hash) + hashString.charCodeAt(i);
-        hash = hash & hash;
-    }
-    return forms[Math.abs(hash) % forms.length];
-}
 
 // ===== PREPARE EXAM DATA =====
 function prepareExamData() {
@@ -3023,19 +2923,16 @@ function prepareExamData() {
   console.log("- Maths:", examData.subjectNames.filter(s => s === "Maths").length);
 }
 
-// ===== RENDER QUESTION =====
+// ===== FIXED: RENDER QUESTION WITHOUT DUPLICATE INFO =====
 function renderQuestion() {
   const idx = progress.currentIndex;
   const container = document.getElementById('questionContainer');
   
   const originalIndex = examData.originalOrder[idx] + 1;
   const imagePath = getBestImagePath(originalIndex);
-  const questionNumber = idx + 1;
-  const originalQuestionNumber = originalIndex;
   const questionType = examData.questionTypes[idx];
-  const subject = examData.subjectNames[idx];
   
-  console.log(`🖼️ Loading: ${imagePath} (Q${originalQuestionNumber}/75) - ${subject} - ${questionType}`);
+  console.log(`🖼️ Loading: ${imagePath} (Question ${originalIndex}/75) - ${examData.subjectNames[idx]} - ${questionType}`);
   
   let optionsHTML = '';
   
@@ -3123,16 +3020,17 @@ function renderQuestion() {
     `;
   }
   
-  // MODIFIED: Removed subject display
+  // FIXED: Removed duplicate question number and subject display
+  // Only shows image and options
   container.innerHTML = `
     <div class="question-transition question-fade-in">
-      <div class="question-number">Question ${questionNumber} of 75</div>
-      
-      ${renderImageContainer(imagePath, originalQuestionNumber)}
-      
+      ${renderImageContainer(imagePath, originalIndex)}
       ${optionsHTML}
     </div>
   `;
+  
+  // Update header with question info (shows it once in header)
+  updateQuestionInfo();
   
   if (questionType !== 'fill-blank') {
     document.querySelectorAll('.optBtn').forEach(btn => {
@@ -3147,7 +3045,6 @@ function renderQuestion() {
     }, 100);
   }
   
-  updateQuestionInfo();
   updatePalette();
 }
 
@@ -3203,16 +3100,9 @@ function validateStudentInputs() {
   const startBtn = document.getElementById('stuStartBtn');
   const allValid = v1 && v2 && v3 && v4 && keyLoaded;
   
-  if (v1 && v2 && v3 && v4) {
-    const studentData = { name: n.value, sec: s.value, roll: r.value, adm: a.value };
-    // Still assign form internally, but don't show it to student
-    assignedForm = getAssignedForm(studentData);
-    document.getElementById('resubmissionSection').style.display = 'none';
-    document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
-  } else {
-    document.getElementById('resubmissionSection').style.display = 'none';
-    document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
-  }
+  // Directly show/hide start button
+  document.getElementById('resubmissionSection').style.display = 'none';
+  document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
   
   if (!keyLoaded) showError("Answer key not loaded - exam disabled. Contact administrator.");
   
@@ -3408,14 +3298,14 @@ function startExam(studentKey) {
     saveExamProgress();
 }
 
+// ===== FIXED: UPDATE QUESTION INFO IN HEADER =====
 function updateQuestionInfo() {
   const idx = progress.currentIndex;
   const stuInfoEl = document.getElementById('stuInfo');
   const stuQInfoEl = document.getElementById('stuQInfo');
   
   if (stuInfoEl) stuInfoEl.textContent = `${progress.student.name} | ${progress.student.sec} | Roll: ${progress.student.roll}`;
-  // MODIFIED: Removed subject from display
-  if (stuQInfoEl) stuQInfoEl.textContent = `Q${idx+1} of 75`;
+  if (stuQInfoEl) stuQInfoEl.textContent = `Question ${idx+1} of 75 | ${examData.subjectNames[idx]}`;
 }
 
 // ===== PALETTE FUNCTIONS =====
@@ -3429,9 +3319,9 @@ function renderPalette() {
     btn.textContent = i + 1;
     btn.tabindex = "0";
     
-    // Add numerical class for fill-blank questions (cool shadow effect)
     if (examData.questionTypes[i] === 'fill-blank') {
-      btn.classList.add('numerical');
+      btn.style.background = '#FFD700';
+      btn.style.color = '#000';
     }
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
@@ -3453,9 +3343,12 @@ function updatePalette() {
   buttons.forEach((btn, i) => {
     btn.className = 'palette-btn';
     
-    // Add numerical class for fill-blank questions
     if (examData.questionTypes[i] === 'fill-blank') {
-      btn.classList.add('numerical');
+      btn.style.background = '#FFD700';
+      btn.style.color = '#000';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
     }
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
@@ -3719,18 +3612,18 @@ function calculateSubjectMarks(summary) {
 }
 
 async function submitToGoogleForms(answersData) {
-    const FORM_URL = GOOGLE_FORMS[assignedForm];
+    const FORM_URL = GOOGLE_FORM_URL;
     
     if (!FORM_URL) {
-        console.error(`❌ No Google Form URL found for form ${assignedForm}`);
-        updateSubmissionStatus('error', `No Google Form URL found for form ${assignedForm}`);
+        console.error(`❌ No Google Form URL found`);
+        updateSubmissionStatus('error', `No Google Form URL found`);
         saveSubmissionLocally(answersData);
         return false;
     }
 
     try {
-        // Get the correct form fields for this section
-        const formFields = getFormFields(assignedForm);
+        // Get the form fields
+        const formFields = FORM_FIELDS;
         
         // Prepare the form data
         const formData = new URLSearchParams();
@@ -3756,7 +3649,6 @@ async function submitToGoogleForms(answersData) {
         formData.append(formFields.ALL_ANSWERS, allAnswersString);
         
         console.log("📤 Submitting to Google Forms:");
-        console.log("Form:", assignedForm);
         console.log("Student:", answersData.student.name);
         console.log("Answers String:", allAnswersString.substring(0, 100) + "...");
 
@@ -3809,8 +3701,7 @@ function saveSubmissionLocally(answersData) {
         localSubmissions.push({
             ...answersData,
             savedAt: new Date().toISOString(),
-            needsSync: true,
-            form: assignedForm
+            needsSync: true
         });
         
         localStorage.setItem('local_exam_submissions', JSON.stringify(localSubmissions));
@@ -4117,7 +4008,6 @@ function showDetailedSolutions() {
     const isCorrect = item.studentAnswer === item.correctAnswer;
     const questionNumber = item.originalIndex + 1;
     
-    // MODIFIED: Removed question type from display
     solutionDiv.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <div class="solution-question" style="font-size: 18px; font-weight: bold; color: #4B0082;">
@@ -4247,249 +4137,6 @@ document.addEventListener('keydown', function(e) {
     if (e.key === ' ') document.getElementById('markReviewBtn').click();
   }
 });
-
-// ===== SYSTEM TRAY & TASKBAR VIOLATION DETECTION =====
-let systemTrayViolations = 0;
-const MAX_SYSTEM_TRAY_VIOLATIONS = 3;
-let lastSystemTrayViolationTime = 0;
-let systemTrayCheckInterval = null;
-
-class SystemTrayViolationDetector {
-    constructor() {
-        this.blurCount = 0;
-        this.maxBlurCount = 2;
-        this.setupTaskbarDetection();
-        console.log('🔒 System Tray & Taskbar Violation System Ready');
-    }
-    
-    setupTaskbarDetection() {
-        // 1. DETECT WINDOWS KEY PRESSES (opens Start Menu/Search)
-        document.addEventListener('keydown', (e) => {
-            if (!examInProgress) return;
-            
-            const currentTime = Date.now();
-            if (currentTime - lastSystemTrayViolationTime < 500) return;
-            
-            // Windows/Command key (Meta key) - Opens Start Menu/Search
-            if (e.key === 'Meta' || e.key === 'Win' || e.keyCode === 91 || e.keyCode === 92) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Windows key pressed (opens Start Menu/Search)');
-                return false;
-            }
-            
-            // Windows+S (Windows Search)
-            if ((e.key === 's' || e.key === 'S') && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Windows+S pressed (opens Windows Search)');
-                return false;
-            }
-            
-            // Windows+R (Run dialog)
-            if ((e.key === 'r' || e.key === 'R') && e.metaKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Windows+R pressed (opens Run dialog)');
-                return false;
-            }
-            
-            // Windows+X (Power User menu)
-            if ((e.key === 'x' || e.key === 'X') && e.metaKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Windows+X pressed (opens Power User menu)');
-                return false;
-            }
-            
-            // Alt+Tab (Task switching)
-            if (e.key === 'Tab' && e.altKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Alt+Tab pressed (task switching)');
-                return false;
-            }
-            
-            // Windows+Tab (Task View)
-            if (e.key === 'Tab' && e.metaKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Windows+Tab pressed (Task View)');
-                return false;
-            }
-            
-            // Windows+D (Show desktop)
-            if ((e.key === 'd' || e.key === 'D') && e.metaKey) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleSystemTrayViolation('Windows+D pressed (minimizes all windows)');
-                return false;
-            }
-        }, true);
-        
-        // 2. DETECT FOCUS LOSS TO SYSTEM TRAY
-        document.addEventListener('visibilitychange', () => {
-            if (!examInProgress) return;
-            
-            if (document.hidden) {
-                const currentTime = Date.now();
-                
-                // Check if this is a tab switch or system tray click
-                if (currentTime - lastTabSwitchTime > 2000) {
-                    // This might be a system tray click
-                    handleSystemTrayViolation('Possible system tray/taskbar click detected');
-                }
-            }
-        });
-        
-        // 3. PERIODIC CHECK FOR SYSTEM TRAY ACTIVITY
-        this.startPeriodicChecks();
-    }
-    
-    startPeriodicChecks() {
-        if (systemTrayCheckInterval) clearInterval(systemTrayCheckInterval);
-        
-        systemTrayCheckInterval = setInterval(() => {
-            if (!examInProgress) return;
-            
-            // Check if window lost focus without tab switch
-            if (!document.hasFocus()) {
-                const currentTime = Date.now();
-                if (currentTime - lastTabSwitchTime > 3000) {
-                    // Window lost focus but no recent tab switch - likely system tray
-                    handleSystemTrayViolation('Window focus lost to system tray/taskbar');
-                }
-            }
-        }, 1000);
-    }
-    
-    stopPeriodicChecks() {
-        if (systemTrayCheckInterval) {
-            clearInterval(systemTrayCheckInterval);
-            systemTrayCheckInterval = null;
-        }
-    }
-    
-    resetViolations() {
-        systemTrayViolations = 0;
-        lastSystemTrayViolationTime = 0;
-        console.log('🔄 System tray violations reset');
-    }
-}
-
-// Initialize system tray violation detector
-const systemTrayDetector = new SystemTrayViolationDetector();
-
-function handleSystemTrayViolation(violationType) {
-    if (!examInProgress) return;
-    
-    const currentTime = Date.now();
-    
-    // Prevent counting multiple violations in rapid succession
-    if (currentTime - lastSystemTrayViolationTime < 1000) {
-        console.log(`Ignoring rapid system tray violation: ${violationType}`);
-        return;
-    }
-    
-    lastSystemTrayViolationTime = currentTime;
-    systemTrayViolations++;
-    
-    console.log(`🚨 System Tray Violation #${systemTrayViolations}: ${violationType}`);
-    
-    // Show warning to student
-    showSystemTrayViolationWarning(systemTrayViolations, violationType);
-    
-    // SUBMIT EXAM AFTER 3 VIOLATIONS (Same as tab switches!)
-    if (systemTrayViolations >= MAX_SYSTEM_TRAY_VIOLATIONS) {
-        console.log('🚨 3 system tray violations detected - submitting exam!');
-        
-        // Show final warning
-        showViolationOverlay(`
-            🚨 EXAM VIOLATION DETECTED
-            <br><br>
-            ${violationType}
-            <br><br>
-            <strong>3 system tray violations reached!</strong>
-            <br>
-            Submitting exam in 3 seconds...
-        `, 'red');
-        
-        // Submit exam after delay
-        setTimeout(() => {
-            if (examInProgress) {
-                submitExam();
-            }
-        }, 3000);
-    }
-}
-
-function showSystemTrayViolationWarning(count, violationType) {
-    const messages = [
-        `⚠️ System Tray Access: ${violationType} (1/${MAX_SYSTEM_TRAY_VIOLATIONS})`,
-        `⚠️ System Tray Access: ${violationType} (2/${MAX_SYSTEM_TRAY_VIOLATIONS}) - One more violation will submit exam!`,
-        `🚨 3 system tray violations detected! ${violationType} - Submitting exam...`
-    ];
-    
-    const messageIndex = Math.min(count - 1, 2);
-    const message = messages[messageIndex];
-    
-    // Show toast notification
-    showToast(message, 'error', 5000);
-    
-    // Show big warning overlay for serious violations
-    if (count >= 2) {
-        showViolationOverlay(`
-            ⚠️ SYSTEM TRAY VIOLATION
-            <br><br>
-            ${violationType}
-            <br><br>
-            <strong>Count: ${count}/${MAX_SYSTEM_TRAY_VIOLATIONS}</strong>
-            <br>
-            Accessing system tray, taskbar, or Windows shortcuts is prohibited!
-        `, 'orange');
-    }
-}
-
-function showViolationOverlay(message, color) {
-    const existingOverlay = document.getElementById('violationWarningOverlay');
-    if (existingOverlay) {
-        existingOverlay.remove();
-    }
-    
-    const overlay = document.createElement('div');
-    overlay.id = 'violationWarningOverlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 20%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: ${color === 'red' ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 165, 0, 0.95)'};
-        color: white;
-        padding: 25px 35px;
-        border-radius: 15px;
-        z-index: 10002;
-        text-align: center;
-        font-weight: bold;
-        font-size: 20px;
-        border: 4px solid white;
-        box-shadow: 0 0 40px ${color === 'red' ? 'red' : 'orange'};
-        animation: pulse 1s infinite;
-        max-width: 80%;
-        min-width: 300px;
-    `;
-    
-    overlay.innerHTML = message;
-    document.body.appendChild(overlay);
-    
-    setTimeout(() => {
-        overlay.style.animation = 'fadeOut 0.5s ease';
-        setTimeout(() => {
-            if (overlay.parentNode) {
-                overlay.parentNode.removeChild(overlay);
-            }
-        }, 500);
-    }, 5000);
-}
 
 // ===== INITIAL SETUP =====
 window.addEventListener('load', function() {
