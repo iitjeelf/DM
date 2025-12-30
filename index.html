@@ -368,7 +368,7 @@ button:focus {
   align-items: center;
   margin: 20px 0;
   padding: 10px;
-  background: #f9f9ff;
+  background: white;
   border-radius: 10px;
   border: 2px solid #E6E6FA;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -386,7 +386,7 @@ button:focus {
 /* Fallback image container */
 .image-fallback {
   padding: 40px;
-  background: #ffebee;
+  background: white;
   border: 2px solid #ffcdd2;
   border-radius: 10px;
   color: #c62828;
@@ -1240,6 +1240,23 @@ table td, table th {
   transform: translateY(0);
 }
 
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+#chromeMenuWarning {
+  font-size: 16px;
+  border: 2px solid white;
+}
+
+#chromeMenuWarning small {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
 /* ===== POWER LOSS RECOVERY OVERLAY STYLES ===== */
 #powerLossRecoveryOverlay {
   position: fixed;
@@ -1447,170 +1464,10 @@ table td, table th {
     width: 80%;
   }
 }
-
-/* ===== FULL SCREEN LAUNCHER STYLES ===== */
-#fullscreenLauncher {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #4B0082 0%, #8A2BE2 100%);
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 999999;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 20px;
-}
-
-.launcher-content {
-  max-width: 800px;
-  padding: 40px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  animation: fadeIn 1s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-  50% { transform: scale(1.05); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-  100% { transform: scale(1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-}
-
-/* ===== FULL SCREEN ENDING PAGE STYLES ===== */
-#fullscreenEnding {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #1a1a2e 0%, #162447 100%);
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 999999;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 20px;
-}
-
-.ending-content {
-  max-width: 700px;
-  padding: 40px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 2px solid rgba(75, 0, 130, 0.5);
-  animation: slideUp 1s ease;
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(50px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes confettiRain {
-  0% { background-position: 0% 0%, 0% 0%, 0% 0%; }
-  100% { background-position: 500px 1000px, 400px 400px, 300px 300px; }
-}
-
-#fullscreenEnding.confetti {
-  background: 
-    linear-gradient(135deg, #1a1a2e 0%, #162447 100%),
-    radial-gradient(circle at 20% 80%, transparent 0%, transparent 2%, rgba(255, 215, 0, 0.3) 3%, transparent 4%),
-    radial-gradient(circle at 40% 20%, transparent 0%, transparent 2%, rgba(75, 0, 130, 0.3) 3%, transparent 4%),
-    radial-gradient(circle at 60% 40%, transparent 0%, transparent 2%, rgba(32, 201, 151, 0.3) 3%, transparent 4%);
-  background-size: 100% 100%, 500px 500px, 400px 400px, 300px 300px;
-  animation: confettiRain 10s linear infinite;
-}
 </style>
 </head>
 
 <body>
-
-<!-- ===== FULL SCREEN LAUNCHER/LANDING PAGE ===== -->
-<div id="fullscreenLauncher">
-    <div class="launcher-content">
-        <h1 style="font-size: 3.5em; margin-bottom: 20px; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-            🎯 LFJC ONLINE EXAMINATION
-        </h1>
-        
-        <div style="font-size: 1.5em; margin: 30px 0; line-height: 1.8;">
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
-                <strong>📝 EXAM STRUCTURE</strong>
-                <div style="font-size: 0.9em; margin-top: 10px;">
-                    <div>• Physics: 20 (MCQ) + 5 (Numerical) = 25 Questions</div>
-                    <div>• Chemistry: 20 (MCQ) + 5 (Numerical) = 25 Questions</div>
-                    <div>• Mathematics: 20 (MCQ) + 5 (Numerical) = 25 Questions</div>
-                </div>
-            </div>
-            
-            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
-                <strong>🏆 SCORING SYSTEM</strong>
-                <div style="font-size: 0.9em; margin-top: 10px;">
-                    <div>• Correct Answer: +4 Marks</div>
-                    <div>• Wrong Answer: -1 Mark</div>
-                    <div>• Total Questions: 75</div>
-                    <div>• Total Time: 3 Hours</div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="launcherInstructions" style="
-            background: rgba(0, 0, 0, 0.3);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 25px 0;
-            font-size: 1.1em;
-            text-align: left;
-        ">
-            <h3 style="margin-top: 0; color: #FFD700;">⚠️ IMPORTANT INSTRUCTIONS:</h3>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-                <li>Full-screen mode will be required</li>
-                <li>Tab switching is monitored (3 switches = auto-submit)</li>
-                <li>System tray access is prohibited</li>
-                <li>Screenshots are disabled</li>
-                <li>Auto-save every 15 seconds</li>
-                <li>Power loss recovery enabled</li>
-            </ul>
-        </div>
-        
-        <div style="margin: 30px 0;">
-            <button id="startLauncherBtn" style="
-                background: linear-gradient(145deg, #32CD32, #228B22);
-                color: white;
-                border: none;
-                padding: 20px 50px;
-                font-size: 1.5em;
-                border-radius: 12px;
-                cursor: pointer;
-                font-weight: bold;
-                transition: all 0.3s ease;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            ">
-                🚀 START EXAMINATION
-            </button>
-        </div>
-        
-        <div style="font-size: 0.9em; color: rgba(255,255,255,0.8); margin-top: 20px;">
-            <p>Please ensure you have stable internet connection</p>
-            <p>All rights reserved © LFJC 2025</p>
-        </div>
-    </div>
-</div>
 
 <!-- Power Loss Recovery Overlay -->
 <div id="powerLossRecoveryOverlay">
@@ -1642,7 +1499,7 @@ table td, table th {
   </div>
 </div>
 
-<!-- Access Denied Screen -->
+<!-- Access Denied Screen - ALWAYS SHOWS FIRST -->
 <div id="accessDenied" class="access-denied">
     <h1>LFJC ONLINE EXAMINATION</h1>
     <p style="font-size: 1.2em; margin: 10px 0;">TOTAL 75 QUESTIONS</p>
@@ -1800,142 +1657,6 @@ table td, table th {
 
 <footer>@LFJC2025 All Rights Reserved</footer>
 
-<!-- ===== FULL SCREEN ENDING/COMPLETION PAGE ===== -->
-<div id="fullscreenEnding">
-    <div class="ending-content">
-        <div style="font-size: 5em; margin-bottom: 20px;">🎉</div>
-        
-        <h1 style="font-size: 2.5em; margin-bottom: 20px; color: #4B0082; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">
-            EXAMINATION COMPLETED
-        </h1>
-        
-        <div id="endingSummary" style="
-            background: rgba(75, 0, 130, 0.2);
-            padding: 25px;
-            border-radius: 15px;
-            margin: 25px 0;
-            font-size: 1.2em;
-            text-align: center;
-        ">
-            <h3 style="margin-top: 0; color: #FFD700; font-size: 1.3em;">📊 YOUR PERFORMANCE SUMMARY</h3>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;">
-                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-                    <div style="font-size: 2em; font-weight: bold; color: #32CD32;" id="endingCorrect">0</div>
-                    <div style="font-size: 0.9em;">Correct Answers</div>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-                    <div style="font-size: 2em; font-weight: bold; color: #FF6B6B;" id="endingWrong">0</div>
-                    <div style="font-size: 0.9em;">Wrong Answers</div>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-                    <div style="font-size: 2em; font-weight: bold; color: #FFD700;" id="endingTotalMarks">0</div>
-                    <div style="font-size: 0.9em;">Total Marks</div>
-                </div>
-            </div>
-            
-            <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>Physics:</span>
-                    <span id="endingPhysicsMarks">0 marks</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>Chemistry:</span>
-                    <span id="endingChemistryMarks">0 marks</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span>Mathematics:</span>
-                    <span id="endingMathsMarks">0 marks</span>
-                </div>
-            </div>
-        </div>
-        
-        <div id="endingStatus" style="
-            background: rgba(32, 201, 151, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        ">
-            <span style="font-size: 1.5em;">✅</span>
-            <span>Answers successfully submitted to Google Forms!</span>
-        </div>
-        
-        <div id="downloadOptions" style="margin: 30px 0;">
-            <h4 style="color: #FFD700; margin-bottom: 20px;">📥 DOWNLOAD YOUR RESULTS</h4>
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="downloadResultsPDF()" style="
-                    background: linear-gradient(145deg, #FF6B6B, #DC143C);
-                    color: white;
-                    border: none;
-                    padding: 15px 30px;
-                    font-size: 1.1em;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    min-width: 200px;
-                ">
-                    📄 Download PDF Report
-                </button>
-                
-                <button onclick="downloadStudentCSV()" style="
-                    background: linear-gradient(145deg, #32CD32, #228B22);
-                    color: white;
-                    border: none;
-                    padding: 15px 30px;
-                    font-size: 1.1em;
-                    border-radius: 10px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    min-width: 200px;
-                ">
-                    📊 Download CSV Data
-                </button>
-            </div>
-        </div>
-        
-        <div style="margin-top: 40px;">
-            <button id="restartExamBtn" style="
-                background: linear-gradient(145deg, #4B0082, #8A2BE2);
-                color: white;
-                border: none;
-                padding: 15px 40px;
-                font-size: 1.2em;
-                border-radius: 10px;
-                cursor: pointer;
-                font-weight: bold;
-                transition: all 0.3s ease;
-                margin: 0 10px;
-            ">
-                🔄 Take Another Exam
-            </button>
-            
-            <button id="closeEndingBtn" style="
-                background: linear-gradient(145deg, #6c757d, #495057);
-                color: white;
-                border: none;
-                padding: 15px 40px;
-                font-size: 1.2em;
-                border-radius: 10px;
-                cursor: pointer;
-                font-weight: bold;
-                transition: all 0.3s ease;
-                margin: 0 10px;
-            ">
-                🏁 Exit Examination
-            </button>
-        </div>
-        
-        <div style="margin-top: 30px; font-size: 0.9em; color: rgba(255,255,255,0.6);">
-            <p>Thank you for completing the LFJC Online Examination</p>
-            <p>Results will be verified and official scores will be announced later</p>
-        </div>
-    </div>
-</div>
-
 <!-- Security Overlays -->
 <div id="fullRedOverlay"></div>
 <div id="accessDeniedBox">
@@ -2058,163 +1779,6 @@ let resumeInProgress = false;
 const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
-
-// ===== LAUNCHER FUNCTIONS =====
-document.getElementById('startLauncherBtn').addEventListener('click', function() {
-    // Hide launcher
-    document.getElementById('fullscreenLauncher').style.display = 'none';
-    
-    // Show access denied screen
-    document.getElementById('accessDenied').style.display = 'flex';
-    
-    // Play start sound (optional)
-    try {
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/286/286-preview.mp3');
-        audio.volume = 0.3;
-        audio.play();
-    } catch (e) {
-        console.log('Audio not available');
-    }
-});
-
-// ===== ENDING PAGE FUNCTIONS =====
-function showEndingPage(subjData) {
-    if (!subjData) return;
-    
-    // Calculate totals
-    let totalCorrect = 0;
-    let totalWrong = 0;
-    let totalMarks = 0;
-    let physicsMarks = 0;
-    let chemistryMarks = 0;
-    let mathsMarks = 0;
-    
-    Object.entries(subjData).forEach(([subject, data]) => {
-        totalCorrect += data.correct;
-        totalWrong += data.wrong;
-        totalMarks += data.marks;
-        
-        if (subject.toLowerCase().includes('phy')) physicsMarks = data.marks;
-        if (subject.toLowerCase().includes('chem')) chemistryMarks = data.marks;
-        if (subject.toLowerCase().includes('math')) mathsMarks = data.marks;
-    });
-    
-    // Update ending page data
-    document.getElementById('endingCorrect').textContent = totalCorrect;
-    document.getElementById('endingWrong').textContent = totalWrong;
-    document.getElementById('endingTotalMarks').textContent = totalMarks.toFixed(2);
-    document.getElementById('endingPhysicsMarks').textContent = physicsMarks.toFixed(2) + ' marks';
-    document.getElementById('endingChemistryMarks').textContent = chemistryMarks.toFixed(2) + ' marks';
-    document.getElementById('endingMathsMarks').textContent = mathsMarks.toFixed(2) + ' marks';
-    
-    // Add confetti effect
-    document.getElementById('fullscreenEnding').classList.add('confetti');
-    
-    // Hide other areas
-    document.getElementById('summaryArea').style.display = 'none';
-    document.getElementById('reviewArea').style.display = 'none';
-    document.getElementById('examArea').style.display = 'none';
-    
-    // Show ending page
-    document.getElementById('fullscreenEnding').style.display = 'flex';
-    
-    // Play completion sound
-    try {
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/241/241-preview.mp3');
-        audio.volume = 0.3;
-        audio.play();
-    } catch (e) {
-        console.log('Audio not available');
-    }
-    
-    // Set up event listeners for ending page buttons
-    document.getElementById('restartExamBtn').onclick = function() {
-        location.reload();
-    };
-    
-    document.getElementById('closeEndingBtn').onclick = function() {
-        if (confirm('Are you sure you want to exit the examination portal?')) {
-            window.close();
-        }
-    };
-}
-
-function downloadResultsPDF() {
-    showToast('📄 Generating PDF report...', 'info', 3000);
-    
-    // Create a simple HTML page for PDF generation
-    const content = `
-        <html>
-        <head>
-            <title>LFJC Exam Results - ${progress?.student?.name || 'Student'}</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 40px; }
-                .header { text-align: center; margin-bottom: 40px; }
-                .student-info { margin: 20px 0; }
-                .results-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                .results-table th, .results-table td { border: 1px solid #000; padding: 10px; text-align: center; }
-                .total-row { font-weight: bold; background: #f0f0f0; }
-                .footer { margin-top: 40px; text-align: center; color: #666; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>LFJC ONLINE EXAMINATION RESULTS</h1>
-                <h3>Official Score Report</h3>
-            </div>
-            
-            <div class="student-info">
-                <p><strong>Student Name:</strong> ${progress?.student?.name || 'N/A'}</p>
-                <p><strong>Section:</strong> ${progress?.student?.sec || 'N/A'}</p>
-                <p><strong>Roll Number:</strong> ${progress?.student?.roll || 'N/A'}</p>
-                <p><strong>Admission No:</strong> ${progress?.student?.adm || 'N/A'}</p>
-                <p><strong>Exam Date:</strong> ${new Date().toLocaleDateString()}</p>
-            </div>
-            
-            <table class="results-table">
-                <thead>
-                    <tr>
-                        <th>Subject</th>
-                        <th>Correct</th>
-                        <th>Wrong</th>
-                        <th>Not Attempted</th>
-                        <th>Total Questions</th>
-                        <th>Marks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${currentSubjData ? Object.entries(currentSubjData).map(([subject, data]) => `
-                        <tr>
-                            <td>${subject}</td>
-                            <td>${data.correct}</td>
-                            <td>${data.wrong}</td>
-                            <td>${data.blank}</td>
-                            <td>${data.total}</td>
-                            <td>${data.marks.toFixed(2)}</td>
-                        </tr>
-                    `).join('') : '<tr><td colspan="6">No data available</td></tr>'}
-                </tbody>
-            </table>
-            
-            <div class="footer">
-                <p>© LFJC 2025 - All Rights Reserved</p>
-                <p>This is an auto-generated report. Official scores subject to verification.</p>
-            </div>
-        </body>
-        </html>
-    `;
-    
-    // Open print dialog (users can save as PDF)
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(content);
-    printWindow.document.close();
-    printWindow.focus();
-    
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
-}
 
 // ===== IMAGE HANDLING FUNCTIONS =====
 async function preloadAllImages() {
@@ -3575,10 +3139,11 @@ function renderQuestion() {
     `;
   }
   
+  // MODIFIED: Removed original question number and question type
   container.innerHTML = `
     <div class="question-transition question-fade-in">
-      <div class="question-number">Question ${questionNumber} of 75 (Original Q${originalQuestionNumber})</div>
-      <div class="sectionTitle">${subject} ${questionType === 'fill-blank' ? '(Numerical Input)' : '(MCQ)'}</div>
+      <div class="question-number">Question ${questionNumber} of 75</div>
+      <div class="sectionTitle">${subject}</div>
       
       ${renderImageContainer(imagePath, originalQuestionNumber)}
       
@@ -4404,10 +3969,8 @@ function submitExam() {
     }
   });
 
-  // Show ending page immediately
-  setTimeout(() => {
-    showEndingPage(subjData);
-  }, 2000);
+  // Show summary immediately
+  showSummaryInterface(subjData);
 }
 
 function identifySubject(subjectName) {
@@ -4488,7 +4051,8 @@ function showSummaryInterface(subjData) {
   document.getElementById('closeSummaryBtn').onclick = () => {
     clearInterval(countdownInterval);
     document.getElementById('summaryArea').style.display = 'none';
-    showEndingPage(currentSubjData);
+    document.getElementById('studentEntry').style.display = 'flex';
+    resetForm();
   };
 }
 
@@ -4572,10 +4136,11 @@ function showDetailedSolutions() {
     const isCorrect = item.studentAnswer === item.correctAnswer;
     const questionNumber = item.originalIndex + 1;
     
+    // MODIFIED: Removed question type from display
     solutionDiv.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <div class="solution-question" style="font-size: 18px; font-weight: bold; color: #4B0082;">
-          Question ${questionNumber} (${item.subject}) - ${item.type === 'fill-blank' ? 'Numerical Input' : 'MCQ'}
+          Question ${questionNumber} (${item.subject})
         </div>
         <div style="font-size: 24px;">
           ${isCorrect ? '✅' : '❌'}
@@ -4600,13 +4165,14 @@ function showDetailedSolutions() {
   
   document.getElementById('closeReviewBtn').onclick = () => {
     document.getElementById('reviewArea').style.display = 'none';
-    showEndingPage(currentSubjData);
+    document.getElementById('studentEntry').style.display = 'flex';
+    resetForm();
   };
 }
 
 // ===== DOWNLOAD FUNCTION =====
 function downloadStudentCSV() {
-  let csvContent = "Question,Subject,Type,Your Answer,Correct Answer,Status\n";
+  let csvContent = "Question,Subject,Your Answer,Correct Answer,Status\n";
   
   const sortedData = [];
   for (let i = 0; i < examData.files.length; i++) {
@@ -4625,7 +4191,7 @@ function downloadStudentCSV() {
     const status = item.studentAnswer === item.correctAnswer ? 'Correct' : 
                   item.studentAnswer === 'Not Attempted' ? 'Not Attempted' : 'Wrong';
     
-    csvContent += `${item.questionNumber},${item.subject},${item.type},${item.studentAnswer},${item.correctAnswer},${status}\n`;
+    csvContent += `${item.questionNumber},${item.subject},${item.studentAnswer},${item.correctAnswer},${status}\n`;
   });
   
   const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -4789,7 +4355,7 @@ class SystemTrayViolationDetector {
                 const currentTime = Date.now();
                 
                 // Check if this is a tab switch or system tray click
-                if (currentTime - lastTabSwitchTime > 1000) {
+                if (currentTime - lastTabSwitchTime > 2000) {
                     // This might be a system tray click
                     handleSystemTrayViolation('Possible system tray/taskbar click detected');
                 }
@@ -4959,9 +4525,7 @@ window.addEventListener('load', function() {
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
   console.log('📂 EXTERNAL ANSWER KEY: Loading from answers.txt');
   
-  // Show launcher first
-  document.getElementById('fullscreenLauncher').style.display = 'flex';
-  document.getElementById('accessDenied').style.display = 'none';
+  document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
   document.getElementById('examArea').style.display = 'none';
   document.getElementById('summaryArea').style.display = 'none';
@@ -4969,13 +4533,14 @@ window.addEventListener('load', function() {
   document.getElementById('resubmissionSection').style.display = 'none';
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
-  document.getElementById('fullscreenEnding').style.display = 'none';
+  
+  document.getElementById('accessCode').focus();
   
   // Load external answer key and preload images
   loadAnswerKey().then(success => {
     if (success) {
       console.log("✅ External answer key loaded successfully!");
-      showToast('✅ External answer key loaded!', 'success', 3000);
+      showToast('✅ External answer key loaded! Enter access code.', 'success', 3000);
     }
   });
   
