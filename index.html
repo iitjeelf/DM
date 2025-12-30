@@ -787,6 +787,32 @@ button:focus {
   display: none;
 }
 
+/* ===== FORM ASSIGNMENT STYLES ===== */
+.form-assignment {
+  background: #e8f4fd;
+  border: 2px solid #4B0082;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 15px 0;
+  text-align: center;
+}
+
+.form-assignment h3 {
+  color: #4B0082;
+  margin: 0 0 10px 0;
+}
+
+.assigned-form {
+  font-size: 24px;
+  font-weight: bold;
+  color: #4B0082;
+  background: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 10px 0;
+}
+
 /* ===== RESUBMISSION STYLES ===== */
 #resubmissionSection {
   background: #fff3cd;
@@ -887,7 +913,7 @@ button:focus {
   background: #f8f9fa;
   border-radius: 8px;
   border: 1px solid #4B0082;
-  box-shadow: 0 2px 4px rgba(75,0,130,0.1);
+  box-shadow: 0 2px 4px rgba(75, 0, 130, 0.1);
 }
 
 .num-key-btn {
@@ -901,24 +927,24 @@ button:focus {
   color: #4B0082;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 0 rgba(75,0,130,0.2);
+  box-shadow: 0 2px 0 rgba(75, 0, 130, 0.2);
 }
 
 .num-key-btn:hover {
   background: linear-gradient(145deg, #f0f0ff, #e6e6fa);
   transform: translateY(-1px);
-  box-shadow: 0 3px 0 rgba(75,0,130,0.3);
+  box-shadow: 0 3px 0 rgba(75, 0, 130, 0.3);
 }
 
 .num-key-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 1px 0 rgba(75,0,130,0.2);
+  box-shadow: 0 1px 0 rgba(75, 0, 130, 0.2);
 }
 
 .num-key-btn:focus {
   outline: 2px solid #4B0082 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 0 2px rgba(75,0,130,0.2) !important;
+  box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.2) !important;
 }
 
 .special-btn {
@@ -942,25 +968,25 @@ button:focus {
 .fill-blank-input:focus {
   outline: 2px solid #4B0082 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 0 2px rgba(75,0,130,0.2) !important;
+  box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.2) !important;
 }
 
 .optBtn:focus {
   outline: 2px solid #4B0082 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 0 2px rgba(75,0,130,0.2) !important;
+  box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.2) !important;
 }
 
 .navBtn:focus {
   outline: 2px solid #4B0082 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 0 2px rgba(75,0,130,0.2) !important;
+  box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.2) !important;
 }
 
 .palette-btn:focus {
   outline: 2px solid #4B0082 !important;
   outline-offset: 1px;
-  box-shadow: 0 0 0 2px rgba(75,0,130,0.2) !important;
+  box-shadow: 0 0 0 2px rgba(75, 0, 130, 0.2) !important;
 }
 
 /* Responsive keypad */
@@ -1471,6 +1497,13 @@ button:focus {
   <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
   <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
 
+  <!-- Form Assignment Display -->
+  <div id="formAssignment" class="form-assignment" style="display:none;">
+    <h3>📋 ASSIGNED FORM</h3>
+    <div class="assigned-form" id="assignedFormDisplay">FORM A</div>
+    <p>Your responses will be submitted to this form</p>
+  </div>
+
   <!-- RESUME EXAM SECTION -->
   <div id="resumeExamSection">
     <h3>🔄 Exam In Progress Found</h3>
@@ -1535,7 +1568,8 @@ button:focus {
     <div>
       <b>Section:</b> <span id="summarySection"></span> | 
       <b>Roll:</b> <span id="summaryRoll"></span> | 
-      <b>Admission No:</b> <span id="summaryAdm"></span>
+      <b>Admission No:</b> <span id="summaryAdm"></span> |
+      <b>Form:</b> <span id="summaryForm"></span>
     </div>
   </div>
   
@@ -1564,7 +1598,8 @@ button:focus {
     <div>
       <b>Section:</b> <span id="reviewSection"></span> | 
       <b>Roll:</b> <span id="reviewRoll"></span> | 
-      <b>Admission No:</b> <span id="reviewAdm"></span>
+      <b>Admission No:</b> <span id="reviewAdm"></span> |
+      <b>Form:</b> <span id="reviewForm"></span>
     </div>
   </div>
   
@@ -1653,10 +1688,35 @@ const STORAGE_KEYS = {
     PENDING_SUBMISSIONS: 'lfjc_pending_submissions'
 };
 
-// EXTERNAL ANSWER KEY CONFIGURATION
-const ANSWER_KEY_URL = 'answers.txt'; // External file with your answers
-let answerKey = [];
-let keyLoaded = false;
+// ===== YOUR EXACT ANSWER KEY (EMBEDDED - NO EXTERNAL FILE NEEDED) =====
+const YOUR_EXACT_ANSWER_KEY = [
+    // Physics MCQ Q1-20 (4 lines × 5)
+    "B","A","A","A","B",      // Line 1: BAAAB
+    "B","A","B","C","C",      // Line 2: BABCC
+    "B","A","D","C","A",      // Line 3: BADCA
+    "A","A","C","B","A",      // Line 4: AACBA
+    
+    // Physics Numerical Q21-25
+    "7","125","4","7","770",
+    
+    // Chemistry MCQ Q26-45 (4 lines × 5)
+    "B","B","C","A","D",      // Line 1: BBCAD
+    "C","B","B","C","A",      // Line 2: CBBCA
+    "C","C","A","C","D",      // Line 3: CCACD
+    "A","A","B","C","A",      // Line 4: AABCA
+    
+    // Chemistry Numerical Q46-50
+    "3","11","3","4","2",
+    
+    // Maths MCQ Q51-70 (4 lines × 5)
+    "A","A","B","B","A",      // Line 1: AABBA
+    "A","C","B","D","A",      // Line 2: ACBDA
+    "C","B","C","B","A",      // Line 3: CBCBA
+    "A","D","D","C","B",      // Line 4: ADDCB
+    
+    // Maths Numerical Q71-75
+    "1328","0","15","0","8"
+];
 
 // QUESTION STRUCTURE CONFIGURATION
 const QUESTION_STRUCTURE = {
@@ -1686,8 +1746,49 @@ const QUESTION_STRUCTURE = {
   ]
 };
 
+// ===== MULTI-FORM GOOGLE FORMS INTEGRATION =====
+const GOOGLE_FORMS = {
+    'A': "https://docs.google.com/forms/d/e/1FAIpQLSe4uuphhY4-p5jdTZqxG_ZZUKAhQZF1ytyNizPXb0n3L85JIw/formResponse",
+    'B': "https://docs.google.com/forms/d/e/1FAIpQLSc3JIcnUysvUtH12QWpHG9wAF4vd1NgEYqeyHwNP0UEkPqi5w/formResponse", 
+    'C': "https://docs.google.com/forms/d/e/1FAIpQLScqYdTGoD4l0jJvzYw0tdBNRSMPepnGtOOowOXYwDFov43KHg/formResponse",
+    'D': "https://docs.google.com/forms/d/e/1FAIpQLSfjAyDlY-5BAF5rPvzQS0AeTI6Vs2Rkri0V6_miA0mRivZAEg/formResponse",
+    'E': "https://docs.google.com/forms/d/e/1FAIpQLSfK6Skl6Uxj8VyGnhhqfdPHcJ8mbcgpzIKLpWFElzdeQSKMgA/formResponse",
+    'F': "https://docs.google.com/forms/d/e/1FAIpQLSeP-Gx2XnUg_Q17asOOeYzkoGtLykVIcQ2W006YTqTpE7xY6g/formResponse",
+    'G': "https://docs.google.com/forms/d/e/1FAIpQLSe1vg_I5XR3ljr-UNFi-MXxUgjdTDyrVbHxqi_dkvtmYGUTEA/formResponse",
+    'H': "https://docs.google.com/forms/d/e/1FAIpQLScyv8cps4StN2UXrsXqNdLu5UBR7t0Vwk8WSnynU2tvracs1g/formResponse",
+    'I': "https://docs.google.com/forms/d/e/1FAIpQLSeyen2hSdhRwztpWnH6lyuL91ZROqwDMKIaa4gN_e-Xvyvb_g/formResponse",
+    'J': "https://docs.google.com/forms/d/e/1FAIpQLSelbDi1n1EKWu7G0I92hTML6vWUO2c55p2dqrEOQ7cWflaSNg/formResponse"
+};
+
+const COMMON_FIELDS = {
+    STUDENT_NAME: "entry.217666919",
+    SECTION: "entry.2006392966", 
+    ROLL_NUMBER: "entry.547275105",
+    ADMISSION_NUMBER: "entry.1234063852",
+    MATHS_MARKS: "entry.1989859216",
+    PHYSICS_MARKS: "entry.1953974928", 
+    CHEMISTRY_MARKS: "entry.296331194",
+    TOTAL_MARKS: "entry.1289040887",
+    TIMESTAMP: "entry.2139100252"
+};
+
+const ANSWERS_FIELDS = {
+    'A': "entry.224183536",
+    'B': "entry.2135062491",
+    'C': "entry.66262823",
+    'D': "entry.762314240",
+    'E': "entry.109746612",
+    'F': "entry.813348755",
+    'G': "entry.1184321804",
+    'H': "entry.64526224",
+    'I': "entry.1618336199",
+    'J': "entry.1279707071"
+};
+
 // ===== GLOBAL VARIABLES =====
 let images = [];
+let answerKey = [];
+let keyLoaded = false;
 let sheetReady = false;
 let hasSubmitted = false;
 let examStartTime = null;
@@ -1951,6 +2052,79 @@ class SystemTrayViolationDetector {
     }
 }
 
+// ===== LOAD ANSWER KEY (YOUR EXACT EMBEDDED ANSWERS) =====
+async function loadAnswerKey() {
+    try {
+        console.log("📥 LOADING YOUR EXACT EMBEDDED ANSWER KEY...");
+        
+        // Use your exact embedded answers
+        answerKey = [...YOUR_EXACT_ANSWER_KEY];
+        
+        // Verify we have exactly 75 answers
+        if (answerKey.length !== 75) {
+            throw new Error(`Expected 75 answers, got ${answerKey.length}`);
+        }
+        
+        // Validate each answer
+        for (let i = 0; i < 75; i++) {
+            const qNum = i + 1;
+            const answer = answerKey[i];
+            
+            // Determine question type
+            const isNumerical = 
+                (qNum >= 21 && qNum <= 25) ||    // Physics numerical
+                (qNum >= 46 && qNum <= 50) ||    // Chemistry numerical
+                (qNum >= 71 && qNum <= 75);      // Maths numerical
+            
+            if (isNumerical) {
+                if (!/^-?\d+(\.\d+)?$/.test(answer)) {
+                    throw new Error(`Invalid numerical answer at Q${qNum}: "${answer}"`);
+                }
+            } else {
+                if (!['A', 'B', 'C', 'D'].includes(answer)) {
+                    throw new Error(`Invalid MCQ answer at Q${qNum}: "${answer}"`);
+                }
+            }
+        }
+        
+        console.log("✅ YOUR EXACT ANSWER KEY LOADED SUCCESSFULLY!");
+        console.log("📊 Total answers:", answerKey.length);
+        console.log("📋 First 10 answers:", answerKey.slice(0, 10));
+        console.log("📋 Last 10 answers:", answerKey.slice(65, 75));
+        
+        keyLoaded = true;
+        
+        // Initialize images array
+        images = [];
+        for (let i = 1; i <= 75; i++) {
+            images.push(`questions/${i}.png`);
+        }
+        
+        // Preload images
+        await preloadAllImages();
+        
+        showToast('✅ Your exact answer key loaded! Enter access code.', 'success', 3000);
+        
+        clearErrors();
+        validateStudentInputs();
+        return true;
+        
+    } catch (error) {
+        console.error("❌ ERROR LOADING ANSWER KEY:", error);
+        
+        showError(`
+            <div style="color: red; padding: 15px; border: 2px solid red; border-radius: 5px;">
+                <strong>❌ ANSWER KEY ERROR</strong><br><br>
+                ${error.message}<br><br>
+                <small>Please check the embedded answer key in the code.</small>
+            </div>
+        `);
+        
+        document.getElementById('stuStartBtn').style.display = 'none';
+        return false;
+    }
+}
+
 // ===== IMAGE HANDLING FUNCTIONS =====
 async function preloadAllImages() {
     console.log("🖼️ Preloading all question images...");
@@ -2119,139 +2293,6 @@ function retryImageLoad(questionNumber) {
     }
     
     tryNextPath();
-}
-
-// ===== EXTERNAL ANSWER KEY LOADING =====
-async function loadAnswerKey() {
-    try {
-        console.log("📥 LOADING EXTERNAL ANSWER KEY FROM FILE...");
-        
-        // Fetch from external text file
-        const timestamp = Date.now();
-        const response = await fetch(`${ANSWER_KEY_URL}?t=${timestamp}`, {
-            method: 'GET',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load answer key: HTTP ${response.status}`);
-        }
-        
-        const text = await response.text();
-        console.log("📄 Raw answer key text received");
-        console.log("First 500 characters:", text.substring(0, 500));
-        
-        // Parse your exact format (multi-line strings)
-        answerKey = parseAnswerKey(text);
-        
-        // Verify we have exactly 75 answers
-        if (answerKey.length !== 75) {
-            throw new Error(`Expected 75 answers, got ${answerKey.length}. Check your answer key file format.`);
-        }
-        
-        // Validate each answer
-        validateAnswerKey(answerKey);
-        
-        console.log("✅ EXTERNAL ANSWER KEY LOADED SUCCESSFULLY!");
-        console.log("📊 Total answers:", answerKey.length);
-        console.log("📋 First 10 answers:", answerKey.slice(0, 10));
-        console.log("📋 Last 10 answers:", answerKey.slice(65, 75));
-        
-        keyLoaded = true;
-        
-        // Initialize images array
-        images = [];
-        for (let i = 1; i <= 75; i++) {
-            images.push(`questions/${i}.png`);
-        }
-        
-        // Preload images
-        await preloadAllImages();
-        
-        showToast('✅ External answer key loaded successfully!', 'success', 3000);
-        
-        clearErrors();
-        validateStudentInputs();
-        return true;
-        
-    } catch (error) {
-        console.error("❌ ERROR LOADING EXTERNAL ANSWER KEY:", error);
-        
-        showError(`
-            <div style="color: red; padding: 15px; border: 2px solid red; border-radius: 5px;">
-                <strong>❌ EXTERNAL ANSWER KEY ERROR</strong><br><br>
-                ${error.message}<br><br>
-                <small>Please check that 'answers.txt' file exists and contains 75 answers in the correct format.</small>
-            </div>
-        `);
-        
-        document.getElementById('stuStartBtn').style.display = 'none';
-        return false;
-    }
-}
-
-// Function to parse your exact answer key format
-function parseAnswerKey(text) {
-    const lines = text.trim().split('\n').map(line => line.trim());
-    const answers = [];
-    
-    console.log("Parsing lines:", lines.length);
-    
-    for (let line of lines) {
-        if (line === '') continue; // Skip empty lines
-        
-        // Check if line contains multiple letters (like "BAAAB")
-        if (/^[A-D]{5}$/.test(line)) {
-            // Split string into individual characters
-            answers.push(...line.split(''));
-        } 
-        // Check if line is a number (numerical answer)
-        else if (/^\d+$/.test(line)) {
-            answers.push(line);
-        }
-        // Check if line is a letter (single MCQ answer)
-        else if (/^[A-D]$/.test(line)) {
-            answers.push(line);
-        }
-        else {
-            console.warn(`Skipping unrecognized line format: "${line}"`);
-        }
-    }
-    
-    console.log("Parsed answers:", answers.length, "answers");
-    return answers;
-}
-
-// Function to validate answer key
-function validateAnswerKey(answers) {
-    for (let i = 0; i < 75; i++) {
-        const qNum = i + 1;
-        const answer = answers[i];
-        
-        // Determine question type based on position
-        const isNumerical = 
-            (qNum >= 21 && qNum <= 25) ||    // Physics numerical
-            (qNum >= 46 && qNum <= 50) ||    // Chemistry numerical
-            (qNum >= 71 && qNum <= 75);      // Maths numerical
-        
-        if (isNumerical) {
-            // Validate numerical answer
-            if (!/^\d+(\.\d+)?$/.test(answer)) {
-                throw new Error(`Invalid numerical answer at Q${qNum}: "${answer}" (expected a number)`);
-            }
-        } else {
-            // Validate MCQ answer
-            if (!['A', 'B', 'C', 'D'].includes(answer.toUpperCase())) {
-                throw new Error(`Invalid MCQ answer at Q${qNum}: "${answer}" (expected A, B, C, or D)`);
-            }
-            // Ensure uppercase
-            answers[i] = answer.toUpperCase();
-        }
-    }
-    console.log("✅ Answer key validation passed!");
 }
 
 // ===== POWER LOSS PROTECTION SYSTEM =====
@@ -2514,6 +2555,9 @@ function resumeFromPowerLoss(progressData) {
     document.getElementById('stuRoll').value = student.roll || '';
     document.getElementById('stuAdm').value = student.adm || '';
     
+    // Show form assignment
+    updateFormAssignmentDisplay(student);
+    
     // Hide the resume section (we're already resuming)
     document.getElementById('resumeExamSection').style.display = 'none';
     
@@ -2751,7 +2795,7 @@ function showTabSwitchWarning(count) {
         z-index: 10001;
         text-align: center;
         box-shadow: 0 5px 20px rgba(255, 165, 0, 0.3);
-        animation: slideDown 0.5s ease, shakeWarning 0.5s ease;
+        animation: slideDown 0.5s ease;
         font-size: 18px;
         min-width: 350px;
         max-width: 80%;
@@ -3078,21 +3122,37 @@ function submitNumericalAnswer(questionIndex) {
   }, 1500);
 }
 
-// ===== GOOGLE FORMS INTEGRATION =====
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4uuphhY4-p5jdTZqxG_ZZUKAhQZF1ytyNizPXb0n3L85JIw/formResponse";
+// ===== GOOGLE FORMS FUNCTIONS =====
+function getFormFields(section) {
+    return {
+        ...COMMON_FIELDS,
+        ALL_ANSWERS: ANSWERS_FIELDS[section]
+    };
+}
 
-const FORM_FIELDS = {
-    STUDENT_NAME: "entry.217666919",
-    SECTION: "entry.2006392966", 
-    ROLL_NUMBER: "entry.547275105",
-    ADMISSION_NUMBER: "entry.1234063852",
-    MATHS_MARKS: "entry.1989859216",
-    PHYSICS_MARKS: "entry.1953974928", 
-    CHEMISTRY_MARKS: "entry.296331194",
-    TOTAL_MARKS: "entry.1289040887",
-    TIMESTAMP: "entry.2139100252",
-    ALL_ANSWERS: "entry.224183536"
-};
+function getAssignedForm(studentData) {
+    const forms = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    
+    if (studentData.roll && !isNaN(studentData.roll)) {
+        const rollNumber = parseInt(studentData.roll);
+        const formIndex = (rollNumber - 1) % forms.length;
+        return forms[formIndex];
+    }
+    
+    const hashString = `${studentData.name}|${studentData.roll}|${studentData.adm}`;
+    let hash = 0;
+    for (let i = 0; i < hashString.length; i++) {
+        hash = ((hash << 5) - hash) + hashString.charCodeAt(i);
+        hash = hash & hash;
+    }
+    return forms[Math.abs(hash) % forms.length];
+}
+
+function updateFormAssignmentDisplay(studentData) {
+    assignedForm = getAssignedForm(studentData);
+    document.getElementById('assignedFormDisplay').textContent = `FORM ${assignedForm}`;
+    document.getElementById('formAssignment').style.display = 'block';
+}
 
 // ===== PREPARE EXAM DATA =====
 function prepareExamData() {
@@ -3337,9 +3397,15 @@ function validateStudentInputs() {
   const startBtn = document.getElementById('stuStartBtn');
   const allValid = v1 && v2 && v3 && v4 && keyLoaded;
   
-  // Directly show/hide start button
-  document.getElementById('resubmissionSection').style.display = 'none';
-  document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
+  if (v1 && v2 && v3 && v4) {
+    const studentData = { name: n.value, sec: s.value, roll: r.value, adm: a.value };
+    updateFormAssignmentDisplay(studentData);
+    document.getElementById('resubmissionSection').style.display = 'none';
+    document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
+  } else {
+    document.getElementById('resubmissionSection').style.display = 'none';
+    document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
+  }
   
   if (!keyLoaded) showError("Answer key not loaded - exam disabled. Contact administrator.");
   
@@ -3853,18 +3919,18 @@ function calculateSubjectMarks(summary) {
 }
 
 async function submitToGoogleForms(answersData) {
-    const FORM_URL = GOOGLE_FORM_URL;
+    const FORM_URL = GOOGLE_FORMS[assignedForm];
     
     if (!FORM_URL) {
-        console.error(`❌ No Google Form URL found`);
-        updateSubmissionStatus('error', `No Google Form URL found`);
+        console.error(`❌ No Google Form URL found for form ${assignedForm}`);
+        updateSubmissionStatus('error', `No Google Form URL found for form ${assignedForm}`);
         saveSubmissionLocally(answersData);
         return false;
     }
 
     try {
-        // Get the form fields
-        const formFields = FORM_FIELDS;
+        // Get the correct form fields for this section
+        const formFields = getFormFields(assignedForm);
         
         // Prepare the form data
         const formData = new URLSearchParams();
@@ -3890,6 +3956,7 @@ async function submitToGoogleForms(answersData) {
         formData.append(formFields.ALL_ANSWERS, allAnswersString);
         
         console.log("📤 Submitting to Google Forms:");
+        console.log("Form:", assignedForm);
         console.log("Student:", answersData.student.name);
         console.log("Answers String:", allAnswersString.substring(0, 100) + "...");
 
@@ -3942,7 +4009,8 @@ function saveSubmissionLocally(answersData) {
         localSubmissions.push({
             ...answersData,
             savedAt: new Date().toISOString(),
-            needsSync: true
+            needsSync: true,
+            form: assignedForm
         });
         
         localStorage.setItem('local_exam_submissions', JSON.stringify(localSubmissions));
@@ -4107,6 +4175,7 @@ function showSummaryInterface(subjData) {
   document.getElementById('summarySection').textContent = progress.student.sec;
   document.getElementById('summaryRoll').textContent = progress.student.roll;
   document.getElementById('summaryAdm').textContent = progress.student.adm;
+  document.getElementById('summaryForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'results-table';
@@ -4182,6 +4251,7 @@ function showDetailedSolutions() {
   document.getElementById('reviewSection').textContent = progress.student.sec;
   document.getElementById('reviewRoll').textContent = progress.student.roll;
   document.getElementById('reviewAdm').textContent = progress.student.adm;
+  document.getElementById('reviewForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'detailed-results-table';
@@ -4255,7 +4325,7 @@ function showDetailedSolutions() {
     solutionDiv.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <div class="solution-question" style="font-size: 18px; font-weight: bold; color: #4B0082;">
-          Question ${questionNumber} (${item.subject})
+          Question ${questionNumber} (${item.subject}) - ${item.type === 'fill-blank' ? 'Numerical Input' : 'MCQ'}
         </div>
         <div style="font-size: 24px;">
           ${isCorrect ? '✅' : '❌'}
@@ -4287,7 +4357,7 @@ function showDetailedSolutions() {
 
 // ===== DOWNLOAD FUNCTION =====
 function downloadStudentCSV() {
-  let csvContent = "Question,Subject,Your Answer,Correct Answer,Status\n";
+  let csvContent = "Question,Subject,Type,Your Answer,Correct Answer,Status\n";
   
   const sortedData = [];
   for (let i = 0; i < examData.files.length; i++) {
@@ -4306,7 +4376,7 @@ function downloadStudentCSV() {
     const status = item.studentAnswer === item.correctAnswer ? 'Correct' : 
                   item.studentAnswer === 'Not Attempted' ? 'Not Attempted' : 'Wrong';
     
-    csvContent += `${item.questionNumber},${item.subject},${item.studentAnswer},${item.correctAnswer},${status}\n`;
+    csvContent += `${item.questionNumber},${item.subject},${item.type},${item.studentAnswer},${item.correctAnswer},${status}\n`;
   });
   
   const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -4325,6 +4395,7 @@ function resetForm() {
   document.getElementById('stuSection').value = '';
   document.getElementById('stuRoll').value = '';
   document.getElementById('stuAdm').value = '';
+  document.getElementById('formAssignment').style.display = 'none';
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   window.pendingRecoveryData = null;
@@ -4394,7 +4465,7 @@ window.addEventListener('load', function() {
   console.log('🔒 System Tray & Search Bar Detection: 3 violations total submit exam');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
-  console.log('📂 EXTERNAL ANSWER KEY: Loading from answers.txt');
+  console.log('✅ YOUR EXACT ANSWER KEY IS EMBEDDED IN THE CODE - NO EXTERNAL FILES NEEDED');
   
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
@@ -4410,11 +4481,11 @@ window.addEventListener('load', function() {
   // Initialize System Tray Security
   systemTrayDetector = new SystemTrayViolationDetector();
   
-  // Load external answer key and preload images
+  // Load your embedded answer key
   loadAnswerKey().then(success => {
     if (success) {
-      console.log("✅ External answer key loaded successfully!");
-      showToast('✅ External answer key loaded! Enter access code.', 'success', 3000);
+      console.log("✅ Your exact answer key loaded successfully!");
+      showToast('✅ Your exact answer key is ready! Enter access code.', 'success', 3000);
     }
   });
   
@@ -4425,8 +4496,9 @@ window.addEventListener('load', function() {
 });
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
-console.log("📂 Using external answer key from answers.txt");
-console.log("✅ All security systems ready: Tab switching, System tray, Search bar protection enabled");
+console.log("✅ Your exact 75 answers are embedded in the code");
+console.log("✅ No external files needed - guaranteed to work!");
+console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
 </script>
 </body>
 </html>
