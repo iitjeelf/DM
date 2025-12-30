@@ -325,6 +325,41 @@ button:focus {
   color: white;
 }
 
+/* Numerical question style - cool shadow effect */
+#paletteContainer button.numerical {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid #4B0082;
+  box-shadow: 0 4px 15px rgba(75, 0, 130, 0.3),
+              0 0 0 2px rgba(255, 255, 255, 0.8),
+              inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+#paletteContainer button.numerical:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(75, 0, 130, 0.4),
+              0 0 0 2px rgba(255, 255, 255, 0.9),
+              inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#paletteContainer button.numerical::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(75, 0, 130, 0.1) 50%, 
+    transparent 70%);
+  z-index: -1;
+  opacity: 0.8;
+}
+
 /* ===== EXAM AREA STYLES ===== */
 #examArea {
   padding: 16px;
@@ -350,13 +385,6 @@ button:focus {
   flex: 1;
   text-align: center;
   white-space: nowrap;
-}
-
-.sectionTitle {
-  font-size: 22px;
-  color: var(--primary-color);
-  font-weight: bold;
-  margin-bottom: 8px;
 }
 
 /* ===== FIXED IMAGE STYLES ===== */
@@ -848,32 +876,6 @@ table td, table th {
   margin-top: 10px;
   font-weight: 600;
   display: none;
-}
-
-/* ===== FORM ASSIGNMENT STYLES ===== */
-.form-assignment {
-  background: #e8f4fd;
-  border: 2px solid #4B0082;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 15px 0;
-  text-align: center;
-}
-
-.form-assignment h3 {
-  color: #4B0082;
-  margin: 0 0 10px 0;
-}
-
-.assigned-form {
-  font-size: 24px;
-  font-weight: bold;
-  color: #4B0082;
-  background: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  display: inline-block;
-  margin: 10px 0;
 }
 
 /* ===== RESUBMISSION STYLES ===== */
@@ -1527,13 +1529,6 @@ table td, table th {
   <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
   <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
 
-  <!-- Form Assignment Display -->
-  <div id="formAssignment" class="form-assignment" style="display:none;">
-    <h3>📋 ASSIGNED FORM</h3>
-    <div class="assigned-form" id="assignedFormDisplay">FORM A</div>
-    <p>Your responses will be submitted to this form</p>
-  </div>
-
   <!-- RESUME EXAM SECTION -->
   <div id="resumeExamSection">
     <h3>🔄 Exam In Progress Found</h3>
@@ -1598,8 +1593,7 @@ table td, table th {
     <div>
       <b>Section:</b> <span id="summarySection"></span> | 
       <b>Roll:</b> <span id="summaryRoll"></span> | 
-      <b>Admission No:</b> <span id="summaryAdm"></span> |
-      <b>Form:</b> <span id="summaryForm"></span>
+      <b>Admission No:</b> <span id="summaryAdm"></span>
     </div>
   </div>
   
@@ -1628,8 +1622,7 @@ table td, table th {
     <div>
       <b>Section:</b> <span id="reviewSection"></span> | 
       <b>Roll:</b> <span id="reviewRoll"></span> | 
-      <b>Admission No:</b> <span id="reviewAdm"></span> |
-      <b>Form:</b> <span id="reviewForm"></span>
+      <b>Admission No:</b> <span id="reviewAdm"></span>
     </div>
   </div>
   
@@ -2343,9 +2336,6 @@ function resumeFromPowerLoss(progressData) {
     document.getElementById('stuRoll').value = student.roll || '';
     document.getElementById('stuAdm').value = student.adm || '';
     
-    // Show form assignment
-    updateFormAssignmentDisplay(student);
-    
     // Hide the resume section (we're already resuming)
     document.getElementById('resumeExamSection').style.display = 'none';
     
@@ -2967,12 +2957,6 @@ function getAssignedForm(studentData) {
     return forms[Math.abs(hash) % forms.length];
 }
 
-function updateFormAssignmentDisplay(studentData) {
-    assignedForm = getAssignedForm(studentData);
-    document.getElementById('assignedFormDisplay').textContent = `FORM ${assignedForm}`;
-    document.getElementById('formAssignment').style.display = 'block';
-}
-
 // ===== PREPARE EXAM DATA =====
 function prepareExamData() {
   examData.files = []; examData.subjectNames = []; examData.keys = []; examData.originalOrder = []; examData.questionTypes = [];
@@ -3139,16 +3123,16 @@ function renderQuestion() {
     `;
   }
   
-  // MODIFIED: Removed original question number and question type
+  // MODIFIED: Removed subject display
   container.innerHTML = `
     <div class="question-transition question-fade-in">
       <div class="question-number">Question ${questionNumber} of 75</div>
-      <div class="sectionTitle">${subject}</div>
       
       ${renderImageContainer(imagePath, originalQuestionNumber)}
       
       ${optionsHTML}
-    `;
+    </div>
+  `;
   
   if (questionType !== 'fill-blank') {
     document.querySelectorAll('.optBtn').forEach(btn => {
@@ -3221,7 +3205,8 @@ function validateStudentInputs() {
   
   if (v1 && v2 && v3 && v4) {
     const studentData = { name: n.value, sec: s.value, roll: r.value, adm: a.value };
-    updateFormAssignmentDisplay(studentData);
+    // Still assign form internally, but don't show it to student
+    assignedForm = getAssignedForm(studentData);
     document.getElementById('resubmissionSection').style.display = 'none';
     document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
   } else {
@@ -3429,7 +3414,8 @@ function updateQuestionInfo() {
   const stuQInfoEl = document.getElementById('stuQInfo');
   
   if (stuInfoEl) stuInfoEl.textContent = `${progress.student.name} | ${progress.student.sec} | Roll: ${progress.student.roll}`;
-  if (stuQInfoEl) stuQInfoEl.textContent = `Q${idx+1} of 75 | ${examData.subjectNames[idx]}`;
+  // MODIFIED: Removed subject from display
+  if (stuQInfoEl) stuQInfoEl.textContent = `Q${idx+1} of 75`;
 }
 
 // ===== PALETTE FUNCTIONS =====
@@ -3443,9 +3429,9 @@ function renderPalette() {
     btn.textContent = i + 1;
     btn.tabindex = "0";
     
+    // Add numerical class for fill-blank questions (cool shadow effect)
     if (examData.questionTypes[i] === 'fill-blank') {
-      btn.style.background = '#FFD700';
-      btn.style.color = '#000';
+      btn.classList.add('numerical');
     }
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
@@ -3467,12 +3453,9 @@ function updatePalette() {
   buttons.forEach((btn, i) => {
     btn.className = 'palette-btn';
     
+    // Add numerical class for fill-blank questions
     if (examData.questionTypes[i] === 'fill-blank') {
-      btn.style.background = '#FFD700';
-      btn.style.color = '#000';
-    } else {
-      btn.style.background = '';
-      btn.style.color = '';
+      btn.classList.add('numerical');
     }
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
@@ -3989,7 +3972,6 @@ function showSummaryInterface(subjData) {
   document.getElementById('summarySection').textContent = progress.student.sec;
   document.getElementById('summaryRoll').textContent = progress.student.roll;
   document.getElementById('summaryAdm').textContent = progress.student.adm;
-  document.getElementById('summaryForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'results-table';
@@ -4065,7 +4047,6 @@ function showDetailedSolutions() {
   document.getElementById('reviewSection').textContent = progress.student.sec;
   document.getElementById('reviewRoll').textContent = progress.student.roll;
   document.getElementById('reviewAdm').textContent = progress.student.adm;
-  document.getElementById('reviewForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'detailed-results-table';
@@ -4210,7 +4191,6 @@ function resetForm() {
   document.getElementById('stuSection').value = '';
   document.getElementById('stuRoll').value = '';
   document.getElementById('stuAdm').value = '';
-  document.getElementById('formAssignment').style.display = 'none';
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   window.pendingRecoveryData = null;
