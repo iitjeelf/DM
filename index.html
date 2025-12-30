@@ -359,31 +359,55 @@ button:focus {
   margin-bottom: 8px;
 }
 
-/* ===== EXACT IMAGE STYLES FROM FIRST CODE ===== */
-.questionImg {
-  max-width: 100%;
-  height: auto;
+/* ===== FIXED IMAGE STYLES ===== */
+.question-image-container {
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+  padding: 10px;
+  background: #f9f9ff;
   border-radius: 10px;
-  display: block;
-  margin: 0 auto;
   border: 2px solid #E6E6FA;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.image-error {
-  background: #ffebee;
-  border: 2px solid #ffcdd2;
-  color: #c62828;
-  padding: 20px;
+.question-image {
+  max-width: 100%;
+  max-height: 500px;
+  height: auto;
   border-radius: 8px;
-  margin: 20px 0;
-  text-align: center;
-  font-weight: bold;
+  display: block;
+  object-fit: contain;
 }
 
-.image-error h3 {
-  margin: 0 0 10px 0;
+/* Fallback image container */
+.image-fallback {
+  padding: 40px;
+  background: #ffebee;
+  border: 2px solid #ffcdd2;
+  border-radius: 10px;
   color: #c62828;
+  text-align: center;
+  font-weight: bold;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-fallback h3 {
+  margin: 0 0 15px 0;
+  color: #c62828;
+  font-size: 24px;
+}
+
+.image-fallback p {
+  margin: 5px 0;
+  font-size: 16px;
 }
 
 /* ===== ANIMATIONS ===== */
@@ -575,6 +599,14 @@ table td, table th {
     width: 35px;
     height: 35px;
     font-size: 12px;
+  }
+  
+  .question-image-container {
+    min-height: 300px;
+  }
+  
+  .question-image {
+    max-height: 350px;
   }
 }
 
@@ -900,7 +932,7 @@ table td, table th {
 .submission-error {
   background: #f8d7da;
   color: #721c24;
-  border: 1px solid #f5c6cb;
+  border: 1px solid #f5c6cb);
 }
 
 .submission-pending {
@@ -1686,40 +1718,41 @@ const STORAGE_KEYS = {
     PENDING_SUBMISSIONS: 'lfjc_pending_submissions'
 };
 
-// ===== YOUR EXACT ANSWER KEY =====
-const YOUR_EXACT_ANSWER_KEY = [
-    // Physics MCQ Q1-20 (4 lines × 5)
-    "B","A","A","A","B",      // Line 1: BAAAB
-    "B","A","B","C","C",      // Line 2: BABCC
-    "B","A","D","C","A",      // Line 3: BADCA
-    "A","A","C","B","A",      // Line 4: AACBA
-    
-    // Physics Numerical Q21-25
-    "7","125","4","7","770",
-    
-    // Chemistry MCQ Q26-45 (4 lines × 5)
-    "B","B","C","A","D",      // Line 1: BBCAD
-    "C","B","B","C","A",      // Line 2: CBBCA
-    "C","C","A","C","D",      // Line 3: CCACD
-    "A","A","B","C","A",      // Line 4: AABCA
-    
-    // Chemistry Numerical Q46-50
-    "3","11","3","4","2",
-    
-    // Maths MCQ Q51-70 (4 lines × 5)
-    "A","A","B","B","A",      // Line 1: AABBA
-    "A","C","B","D","A",      // Line 2: ACBDA
-    "C","B","C","B","A",      // Line 3: CBCBA
-    "A","D","D","C","B",      // Line 4: ADDCB
-    
-    // Maths Numerical Q71-75
-    "1328","0","15","0","8"
-];
+// EXTERNAL ANSWER KEY CONFIGURATION
+const ANSWER_KEY_URL = 'answers.txt'; // External file with your answers
+let answerKey = [];
+let keyLoaded = false;
+
+// QUESTION STRUCTURE CONFIGURATION
+const QUESTION_STRUCTURE = {
+  total: 75,
+  subjects: [
+    { 
+      name: "Physics", 
+      start: 1, 
+      end: 25, 
+      mcqRange: [1, 20], 
+      fillBlanksRange: [21, 25]
+    },
+    { 
+      name: "Chemistry", 
+      start: 26, 
+      end: 50, 
+      mcqRange: [26, 45], 
+      fillBlanksRange: [46, 50]
+    },
+    { 
+      name: "Maths", 
+      start: 51, 
+      end: 75, 
+      mcqRange: [51, 70], 
+      fillBlanksRange: [71, 75]
+    }
+  ]
+};
 
 // ===== GLOBAL VARIABLES =====
 let images = [];
-let answerKey = [];
-let keyLoaded = false;
 let sheetReady = false;
 let hasSubmitted = false;
 let examStartTime = null;
@@ -1747,68 +1780,240 @@ const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
 
-// ===== LOAD ANSWER KEY (YOUR EXACT ANSWERS) =====
+// ===== IMAGE HANDLING FUNCTIONS =====
+async function preloadAllImages() {
+    console.log("🖼️ Preloading all question images...");
+    
+    const imagePromises = [];
+    
+    // Create array of image paths for 75 questions
+    for (let i = 1; i <= 75; i++) {
+        // Try multiple possible image paths
+        const possiblePaths = [
+            `questions/${i}.png`,
+            `questions/Q${i}.png`,
+            `questions/${i}.jpg`,
+            `questions/Q${i}.jpg`,
+            `questions/${i}.jpeg`,
+            `questions/Q${i}.jpeg`,
+            `images/${i}.png`,
+            `images/Q${i}.png`
+        ];
+        
+        for (const path of possiblePaths) {
+            const promise = new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    console.log(`✅ Preloaded: ${path}`);
+                    preloadedImages[path] = img;
+                    resolve(path);
+                };
+                img.onerror = () => {
+                    console.log(`❌ Failed to preload: ${path}`);
+                    resolve(null);
+                };
+                img.src = path;
+            });
+            imagePromises.push(promise);
+        }
+    }
+    
+    await Promise.all(imagePromises);
+    console.log("✅ Image preloading complete");
+}
+
+function getBestImagePath(questionNumber) {
+    // Try multiple possible paths
+    const possiblePaths = [
+        `questions/${questionNumber}.png`,
+        `questions/Q${questionNumber}.png`,
+        `questions/${questionNumber}.jpg`,
+        `questions/Q${questionNumber}.jpg`,
+        `questions/${questionNumber}.jpeg`,
+        `questions/Q${questionNumber}.jpeg`,
+        `images/${questionNumber}.png`,
+        `images/Q${questionNumber}.png`,
+        `images/${questionNumber}.jpg`,
+        `images/Q${questionNumber}.jpg`
+    ];
+    
+    // Check which image is actually available
+    for (const path of possiblePaths) {
+        if (preloadedImages[path]) {
+            return path;
+        }
+    }
+    
+    // Return default path
+    return `questions/${questionNumber}.png`;
+}
+
+function renderImageContainer(imagePath, questionNumber) {
+    // Check if image is preloaded
+    const preloadedImg = preloadedImages[imagePath];
+    
+    if (preloadedImg) {
+        return `
+            <div class="question-image-container">
+                <img src="${imagePath}" 
+                     class="question-image" 
+                     alt="Question ${questionNumber}"
+                     style="max-width: 100%; max-height: 500px; object-fit: contain;">
+            </div>
+        `;
+    } else {
+        // Try to load image with error handling
+        return `
+            <div class="question-image-container">
+                <img src="${imagePath}" 
+                     class="question-image" 
+                     alt="Question ${questionNumber}"
+                     onload="console.log('✅ Image loaded successfully: ${imagePath}')"
+                     onerror="handleImageError(this, ${questionNumber})"
+                     style="max-width: 100%; max-height: 500px; object-fit: contain;">
+            </div>
+        `;
+    }
+}
+
+function handleImageError(imgElement, questionNumber) {
+    console.error(`❌ Image failed to load: ${imgElement.src}`);
+    
+    const container = imgElement.closest('.question-image-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="image-fallback">
+                <h3>⚠️ Question Image Not Available</h3>
+                <p>Question ${questionNumber}</p>
+                <p style="margin-top: 20px; font-size: 14px;">
+                    Please refer to your question paper or contact the exam administrator.
+                </p>
+                <div style="margin-top: 20px;">
+                    <button onclick="retryImageLoad(${questionNumber})" 
+                            style="padding: 8px 16px; background: #4B0082; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Retry Loading
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function retryImageLoad(questionNumber) {
+    const idx = progress.currentIndex;
+    const originalIndex = examData.originalOrder[idx] + 1;
+    
+    // Try alternative image paths
+    const alternativePaths = [
+        `questions/${originalIndex}.png`,
+        `questions/Q${originalIndex}.png`,
+        `questions/${originalIndex}.jpg`,
+        `questions/Q${originalIndex}.jpg`,
+        `images/${originalIndex}.png`,
+        `images/Q${originalIndex}.png`
+    ];
+    
+    let retryCount = 0;
+    const maxRetries = alternativePaths.length;
+    
+    function tryNextPath() {
+        if (retryCount >= maxRetries) {
+            console.error(`❌ All image paths failed for question ${originalIndex}`);
+            return;
+        }
+        
+        const path = alternativePaths[retryCount];
+        console.log(`🔄 Retrying image ${retryCount + 1}/${maxRetries}: ${path}`);
+        
+        const img = new Image();
+        img.onload = function() {
+            console.log(`✅ Retry successful: ${path}`);
+            // Update the image in the container
+            const container = document.querySelector('.question-image-container');
+            if (container) {
+                container.innerHTML = `
+                    <img src="${path}" 
+                         class="question-image" 
+                         alt="Question ${questionNumber}"
+                         style="max-width: 100%; max-height: 500px; object-fit: contain;">
+                `;
+            }
+        };
+        img.onerror = function() {
+            console.log(`❌ Retry failed: ${path}`);
+            retryCount++;
+            setTimeout(tryNextPath, 500);
+        };
+        img.src = path;
+    }
+    
+    tryNextPath();
+}
+
+// ===== EXTERNAL ANSWER KEY LOADING =====
 async function loadAnswerKey() {
     try {
-        console.log("📥 LOADING YOUR EXACT ANSWER KEY...");
+        console.log("📥 LOADING EXTERNAL ANSWER KEY FROM FILE...");
         
-        // Use your exact answers
-        answerKey = [...YOUR_EXACT_ANSWER_KEY];
+        // Fetch from external text file
+        const timestamp = Date.now();
+        const response = await fetch(`${ANSWER_KEY_URL}?t=${timestamp}`, {
+            method: 'GET',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load answer key: HTTP ${response.status}`);
+        }
+        
+        const text = await response.text();
+        console.log("📄 Raw answer key text received");
+        console.log("First 500 characters:", text.substring(0, 500));
+        
+        // Parse your exact format (multi-line strings)
+        answerKey = parseAnswerKey(text);
         
         // Verify we have exactly 75 answers
         if (answerKey.length !== 75) {
-            throw new Error(`Expected 75 answers, got ${answerKey.length}`);
+            throw new Error(`Expected 75 answers, got ${answerKey.length}. Check your answer key file format.`);
         }
         
         // Validate each answer
-        for (let i = 0; i < 75; i++) {
-            const qNum = i + 1;
-            const answer = answerKey[i];
-            
-            // Determine question type
-            const isNumerical = 
-                (qNum >= 21 && qNum <= 25) ||    // Physics numerical
-                (qNum >= 46 && qNum <= 50) ||    // Chemistry numerical
-                (qNum >= 71 && qNum <= 75);      // Maths numerical
-            
-            if (isNumerical) {
-                if (!/^-?\d+(\.\d+)?$/.test(answer)) {
-                    throw new Error(`Invalid numerical answer at Q${qNum}: "${answer}"`);
-                }
-            } else {
-                if (!['A', 'B', 'C', 'D'].includes(answer)) {
-                    throw new Error(`Invalid MCQ answer at Q${qNum}: "${answer}"`);
-                }
-            }
-        }
+        validateAnswerKey(answerKey);
         
-        console.log("✅ ANSWER KEY LOADED SUCCESSFULLY!");
+        console.log("✅ EXTERNAL ANSWER KEY LOADED SUCCESSFULLY!");
         console.log("📊 Total answers:", answerKey.length);
         console.log("📋 First 10 answers:", answerKey.slice(0, 10));
         console.log("📋 Last 10 answers:", answerKey.slice(65, 75));
         
         keyLoaded = true;
         
-        // Initialize images - EXACTLY FROM FIRST CODE
+        // Initialize images array
         images = [];
         for (let i = 1; i <= 75; i++) {
             images.push(`questions/${i}.png`);
         }
         
-        showToast('✅ Answer key loaded successfully!', 'success', 3000);
+        // Preload images
+        await preloadAllImages();
+        
+        showToast('✅ External answer key loaded successfully!', 'success', 3000);
         
         clearErrors();
         validateStudentInputs();
         return true;
         
     } catch (error) {
-        console.error("❌ ERROR LOADING ANSWER KEY:", error);
+        console.error("❌ ERROR LOADING EXTERNAL ANSWER KEY:", error);
         
         showError(`
             <div style="color: red; padding: 15px; border: 2px solid red; border-radius: 5px;">
-                <strong>❌ ANSWER KEY ERROR</strong><br><br>
+                <strong>❌ EXTERNAL ANSWER KEY ERROR</strong><br><br>
                 ${error.message}<br><br>
-                <small>Please check the embedded answer key in the code.</small>
+                <small>Please check that 'answers.txt' file exists and contains 75 answers in the correct format.</small>
             </div>
         `);
         
@@ -1817,17 +2022,65 @@ async function loadAnswerKey() {
     }
 }
 
-// ===== IMAGE DISPLAY TECHNIQUES FROM FIRST CODE =====
-function handleSimpleImageError(imgElement, questionIndex) {
-    console.error(`Image failed to load: ${imgElement.src}`);
+// Function to parse your exact answer key format
+function parseAnswerKey(text) {
+    const lines = text.trim().split('\n').map(line => line.trim());
+    const answers = [];
     
-    // EXACT error handling from first code
-    imgElement.outerHTML = `
-        <div class="image-error">
-            <h3>⚠️ Image Not Available</h3>
-            <p>Question image could not be loaded. Please continue with the question.</p>
-        </div>
-    `;
+    console.log("Parsing lines:", lines.length);
+    
+    for (let line of lines) {
+        if (line === '') continue; // Skip empty lines
+        
+        // Check if line contains multiple letters (like "BAAAB")
+        if (/^[A-D]{5}$/.test(line)) {
+            // Split string into individual characters
+            answers.push(...line.split(''));
+        } 
+        // Check if line is a number (numerical answer)
+        else if (/^\d+$/.test(line)) {
+            answers.push(line);
+        }
+        // Check if line is a letter (single MCQ answer)
+        else if (/^[A-D]$/.test(line)) {
+            answers.push(line);
+        }
+        else {
+            console.warn(`Skipping unrecognized line format: "${line}"`);
+        }
+    }
+    
+    console.log("Parsed answers:", answers.length, "answers");
+    return answers;
+}
+
+// Function to validate answer key
+function validateAnswerKey(answers) {
+    for (let i = 0; i < 75; i++) {
+        const qNum = i + 1;
+        const answer = answers[i];
+        
+        // Determine question type based on position
+        const isNumerical = 
+            (qNum >= 21 && qNum <= 25) ||    // Physics numerical
+            (qNum >= 46 && qNum <= 50) ||    // Chemistry numerical
+            (qNum >= 71 && qNum <= 75);      // Maths numerical
+        
+        if (isNumerical) {
+            // Validate numerical answer
+            if (!/^\d+(\.\d+)?$/.test(answer)) {
+                throw new Error(`Invalid numerical answer at Q${qNum}: "${answer}" (expected a number)`);
+            }
+        } else {
+            // Validate MCQ answer
+            if (!['A', 'B', 'C', 'D'].includes(answer.toUpperCase())) {
+                throw new Error(`Invalid MCQ answer at Q${qNum}: "${answer}" (expected A, B, C, or D)`);
+            }
+            // Ensure uppercase
+            answers[i] = answer.toUpperCase();
+        }
+    }
+    console.log("✅ Answer key validation passed!");
 }
 
 // ===== POWER LOSS PROTECTION SYSTEM =====
@@ -2791,12 +3044,14 @@ function renderQuestion() {
   const idx = progress.currentIndex;
   const container = document.getElementById('questionContainer');
   
-  const imagePath = examData.files[idx];
+  const originalIndex = examData.originalOrder[idx] + 1;
+  const imagePath = getBestImagePath(originalIndex);
   const questionNumber = idx + 1;
+  const originalQuestionNumber = originalIndex;
   const questionType = examData.questionTypes[idx];
   const subject = examData.subjectNames[idx];
   
-  console.log(`🖼️ Loading: ${imagePath} (Q${questionNumber}/75) - ${subject} - ${questionType}`);
+  console.log(`🖼️ Loading: ${imagePath} (Q${originalQuestionNumber}/75) - ${subject} - ${questionType}`);
   
   let optionsHTML = '';
   
@@ -2884,20 +3139,12 @@ function renderQuestion() {
     `;
   }
   
-  // EXACT IMAGE RENDERING FROM FIRST CODE
   container.innerHTML = `
     <div class="question-transition question-fade-in">
-      <div class="question-number">Question ${questionNumber} of 75</div>
+      <div class="question-number">Question ${questionNumber} of 75 (Original Q${originalQuestionNumber})</div>
       <div class="sectionTitle">${subject} ${questionType === 'fill-blank' ? '(Numerical Input)' : '(MCQ)'}</div>
       
-      <div style="width: 100%; overflow: auto; min-height: 300px; display: flex; justify-content: center; align-items: center;">
-        <img src="${imagePath}" 
-             class="questionImg" 
-             alt="Question ${questionNumber}"
-             style="max-width: 100%; height: auto;"
-             onload="console.log('✅ Image loaded: ${imagePath}')"
-             onerror="handleSimpleImageError(this, ${idx})">
-      </div>
+      ${renderImageContainer(imagePath, originalQuestionNumber)}
       
       ${optionsHTML}
     `;
@@ -4274,7 +4521,7 @@ window.addEventListener('load', function() {
   console.log('🔒 System Tray Detection: 3 violations total submit exam');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
-  console.log('✅ YOUR EXACT ANSWER KEY IS EMBEDDED IN THE CODE');
+  console.log('📂 EXTERNAL ANSWER KEY: Loading from answers.txt');
   
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
@@ -4287,11 +4534,11 @@ window.addEventListener('load', function() {
   
   document.getElementById('accessCode').focus();
   
-  // Load your embedded answer key
+  // Load external answer key and preload images
   loadAnswerKey().then(success => {
     if (success) {
-      console.log("✅ Your exact answer key loaded successfully!");
-      showToast('✅ Your answer key is ready! Enter access code.', 'success', 3000);
+      console.log("✅ External answer key loaded successfully!");
+      showToast('✅ External answer key loaded! Enter access code.', 'success', 3000);
     }
   });
   
@@ -4302,9 +4549,8 @@ window.addEventListener('load', function() {
 });
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
-console.log("✅ Your exact 75 answers are embedded in the code");
-console.log("✅ No external files needed - guaranteed to work!");
-console.log("✅ System ready with your answer key");
+console.log("📂 Using external answer key from answers.txt");
+console.log("✅ System ready with external answer key");
 </script>
 </body>
 </html>
