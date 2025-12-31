@@ -1676,6 +1676,11 @@ const ADMIN_PASSWORD = "admin2025";
 const RESUBMISSION_PASSWORD = "resubmit2025";
 const RESUBMISSION_WINDOW_HOURS = 24;
 
+// EXTERNAL ANSWER KEY CONFIGURATION
+const ANSWER_KEY_URL = 'answer-key.txt'; // External file containing the key
+let answerKey = []; // Will be loaded from external file
+let keyLoaded = false;
+
 // POWER LOSS PROTECTION CONFIG
 const AUTO_SAVE_INTERVAL = 15; // seconds
 const RECOVERY_WINDOW_HOURS = 4; // Allow recovery within 4 hours
@@ -1687,36 +1692,6 @@ const STORAGE_KEYS = {
     EXAM_STATE: 'lfjc_exam_state',
     PENDING_SUBMISSIONS: 'lfjc_pending_submissions'
 };
-
-// ===== YOUR EXACT ANSWER KEY (EMBEDDED - NO EXTERNAL FILE NEEDED) =====
-const YOUR_EXACT_ANSWER_KEY = [
-    // Physics MCQ Q1-20 (4 lines × 5)
-    "B","A","A","A","B",      // Line 1: BAAAB
-    "B","A","B","C","C",      // Line 2: BABCC
-    "B","A","D","C","A",      // Line 3: BADCA
-    "A","A","C","B","A",      // Line 4: AACBA
-    
-    // Physics Numerical Q21-25
-    "7","125","4","7","770",
-    
-    // Chemistry MCQ Q26-45 (4 lines × 5)
-    "B","B","C","A","D",      // Line 1: BBCAD
-    "C","B","B","C","A",      // Line 2: CBBCA
-    "C","C","A","C","D",      // Line 3: CCACD
-    "A","A","B","C","A",      // Line 4: AABCA
-    
-    // Chemistry Numerical Q46-50
-    "3","11","3","4","2",
-    
-    // Maths MCQ Q51-70 (4 lines × 5)
-    "A","A","B","B","A",      // Line 1: AABBA
-    "A","C","B","D","A",      // Line 2: ACBDA
-    "C","B","C","B","A",      // Line 3: CBCBA
-    "A","D","D","C","B",      // Line 4: ADDCB
-    
-    // Maths Numerical Q71-75
-    "1328","0","15","0","8"
-];
 
 // QUESTION STRUCTURE CONFIGURATION
 const QUESTION_STRUCTURE = {
@@ -1787,9 +1762,6 @@ const ANSWERS_FIELDS = {
 
 // ===== GLOBAL VARIABLES =====
 let images = [];
-let answerKey = [];
-let keyLoaded = false;
-let sheetReady = false;
 let hasSubmitted = false;
 let examStartTime = null;
 let waitingTimerInterval = null;
@@ -2052,17 +2024,24 @@ class SystemTrayViolationDetector {
     }
 }
 
-// ===== LOAD ANSWER KEY (YOUR EXACT EMBEDDED ANSWERS) =====
+// ===== LOAD ANSWER KEY FROM EXTERNAL FILE ONLY =====
 async function loadAnswerKey() {
     try {
-        console.log("📥 LOADING YOUR EXACT EMBEDDED ANSWER KEY...");
+        console.log("📥 LOADING ANSWER KEY FROM EXTERNAL FILE...");
         
-        // Use your exact embedded answers
-        answerKey = [...YOUR_EXACT_ANSWER_KEY];
+        // Load from external file
+        const response = await fetch(ANSWER_KEY_URL);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load answer key: HTTP ${response.status}`);
+        }
+        
+        const text = await response.text();
+        answerKey = parseAnswerKeyFile(text);
         
         // Verify we have exactly 75 answers
         if (answerKey.length !== 75) {
-            throw new Error(`Expected 75 answers, got ${answerKey.length}`);
+            throw new Error(`Expected 75 answers, got ${answerKey.length}. Check the answer-key.txt format.`);
         }
         
         // Validate each answer
@@ -2087,7 +2066,7 @@ async function loadAnswerKey() {
             }
         }
         
-        console.log("✅ YOUR EXACT ANSWER KEY LOADED SUCCESSFULLY!");
+        console.log("✅ EXTERNAL ANSWER KEY LOADED SUCCESSFULLY!");
         console.log("📊 Total answers:", answerKey.length);
         console.log("📋 First 10 answers:", answerKey.slice(0, 10));
         console.log("📋 Last 10 answers:", answerKey.slice(65, 75));
@@ -2103,7 +2082,7 @@ async function loadAnswerKey() {
         // Preload images
         await preloadAllImages();
         
-        showToast('✅ Your exact answer key loaded! Enter access code.', 'success', 3000);
+        showToast('✅ Answer key loaded! Enter access code.', 'success', 3000);
         
         clearErrors();
         validateStudentInputs();
@@ -2116,13 +2095,34 @@ async function loadAnswerKey() {
             <div style="color: red; padding: 15px; border: 2px solid red; border-radius: 5px;">
                 <strong>❌ ANSWER KEY ERROR</strong><br><br>
                 ${error.message}<br><br>
-                <small>Please check the embedded answer key in the code.</small>
+                <small>Please check the answer-key.txt file format and ensure it exists.</small>
             </div>
         `);
         
         document.getElementById('stuStartBtn').style.display = 'none';
         return false;
     }
+}
+
+function parseAnswerKeyFile(text) {
+    const lines = text.trim().split('\n');
+    const answers = [];
+    
+    for (let line of lines) {
+        line = line.trim();
+        if (line) {
+            // Check if line contains multiple answers (like "BAAAB")
+            if (line.length > 1 && /^[A-D]{5}$/.test(line)) {
+                // Split combined answers like "BAAAB" into individual letters
+                answers.push(...line.split(''));
+            } else {
+                // Single answer (numerical or single letter)
+                answers.push(line);
+            }
+        }
+    }
+    
+    return answers;
 }
 
 // ===== IMAGE HANDLING FUNCTIONS =====
@@ -3601,7 +3601,6 @@ function startExam(studentKey) {
     // Enable all security systems
     systemTrayDetector.enable();
     
-    sheetReady = true;
     saveExamProgress();
 }
 
@@ -4465,7 +4464,7 @@ window.addEventListener('load', function() {
   console.log('🔒 System Tray & Search Bar Detection: 3 violations total submit exam');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
-  console.log('✅ YOUR EXACT ANSWER KEY IS EMBEDDED IN THE CODE - NO EXTERNAL FILES NEEDED');
+  console.log('📁 EXTERNAL ANSWER KEY: Will load from answer-key.txt');
   
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
@@ -4481,11 +4480,11 @@ window.addEventListener('load', function() {
   // Initialize System Tray Security
   systemTrayDetector = new SystemTrayViolationDetector();
   
-  // Load your embedded answer key
+  // Load answer key from external file
   loadAnswerKey().then(success => {
     if (success) {
-      console.log("✅ Your exact answer key loaded successfully!");
-      showToast('✅ Your exact answer key is ready! Enter access code.', 'success', 3000);
+      console.log("✅ External answer key loaded successfully!");
+      showToast('✅ External answer key loaded! Enter access code.', 'success', 3000);
     }
   });
   
@@ -4496,8 +4495,7 @@ window.addEventListener('load', function() {
 });
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
-console.log("✅ Your exact 75 answers are embedded in the code");
-console.log("✅ No external files needed - guaranteed to work!");
+console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
 console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
 </script>
 </body>
