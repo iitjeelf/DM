@@ -787,32 +787,6 @@ button:focus {
   display: none;
 }
 
-/* ===== FORM ASSIGNMENT STYLES ===== */
-.form-assignment {
-  background: #e8f4fd;
-  border: 2px solid #4B0082;
-  border-radius: 10px;
-  padding: 15px;
-  margin: 15px 0;
-  text-align: center;
-}
-
-.form-assignment h3 {
-  color: #4B0082;
-  margin: 0 0 10px 0;
-}
-
-.assigned-form {
-  font-size: 24px;
-  font-weight: bold;
-  color: #4B0082;
-  background: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  display: inline-block;
-  margin: 10px 0;
-}
-
 /* ===== RESUBMISSION STYLES ===== */
 #resubmissionSection {
   background: #fff3cd;
@@ -1497,13 +1471,8 @@ button:focus {
   <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
   <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
 
-  <!-- Form Assignment Display -->
-  <div id="formAssignment" class="form-assignment" style="display:none;">
-    <h3>📋 ASSIGNED FORM</h3>
-    <div class="assigned-form" id="assignedFormDisplay">FORM A</div>
-    <p>Your responses will be submitted to this form</p>
-  </div>
-
+  <!-- REMOVED: Form Assignment Display -->
+  
   <!-- RESUME EXAM SECTION -->
   <div id="resumeExamSection">
     <h3>🔄 Exam In Progress Found</h3>
@@ -1568,8 +1537,8 @@ button:focus {
     <div>
       <b>Section:</b> <span id="summarySection"></span> | 
       <b>Roll:</b> <span id="summaryRoll"></span> | 
-      <b>Admission No:</b> <span id="summaryAdm"></span> |
-      <b>Form:</b> <span id="summaryForm"></span>
+      <b>Admission No:</b> <span id="summaryAdm"></span>
+      <!-- REMOVED: | <b>Form:</b> <span id="summaryForm"></span> -->
     </div>
   </div>
   
@@ -1598,8 +1567,8 @@ button:focus {
     <div>
       <b>Section:</b> <span id="reviewSection"></span> | 
       <b>Roll:</b> <span id="reviewRoll"></span> | 
-      <b>Admission No:</b> <span id="reviewAdm"></span> |
-      <b>Form:</b> <span id="reviewForm"></span>
+      <b>Admission No:</b> <span id="reviewAdm"></span>
+      <!-- REMOVED: | <b>Form:</b> <span id="reviewForm"></span> -->
     </div>
   </div>
   
@@ -2555,8 +2524,8 @@ function resumeFromPowerLoss(progressData) {
     document.getElementById('stuRoll').value = student.roll || '';
     document.getElementById('stuAdm').value = student.adm || '';
     
-    // Show form assignment
-    updateFormAssignmentDisplay(student);
+    // REMOVED: Form assignment display
+    // updateFormAssignmentDisplay(student);
     
     // Hide the resume section (we're already resuming)
     document.getElementById('resumeExamSection').style.display = 'none';
@@ -3148,11 +3117,7 @@ function getAssignedForm(studentData) {
     return forms[Math.abs(hash) % forms.length];
 }
 
-function updateFormAssignmentDisplay(studentData) {
-    assignedForm = getAssignedForm(studentData);
-    document.getElementById('assignedFormDisplay').textContent = `FORM ${assignedForm}`;
-    document.getElementById('formAssignment').style.display = 'block';
-}
+// REMOVED: updateFormAssignmentDisplay function since we're not displaying form
 
 // ===== PREPARE EXAM DATA =====
 function prepareExamData() {
@@ -3399,7 +3364,8 @@ function validateStudentInputs() {
   
   if (v1 && v2 && v3 && v4) {
     const studentData = { name: n.value, sec: s.value, roll: r.value, adm: a.value };
-    updateFormAssignmentDisplay(studentData);
+    // REMOVED: updateFormAssignmentDisplay(studentData);
+    assignedForm = getAssignedForm(studentData); // Still assign internally, just don't display
     document.getElementById('resubmissionSection').style.display = 'none';
     document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
   } else {
@@ -4174,7 +4140,7 @@ function showSummaryInterface(subjData) {
   document.getElementById('summarySection').textContent = progress.student.sec;
   document.getElementById('summaryRoll').textContent = progress.student.roll;
   document.getElementById('summaryAdm').textContent = progress.student.adm;
-  document.getElementById('summaryForm').textContent = assignedForm;
+  // REMOVED: document.getElementById('summaryForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'results-table';
@@ -4250,7 +4216,7 @@ function showDetailedSolutions() {
   document.getElementById('reviewSection').textContent = progress.student.sec;
   document.getElementById('reviewRoll').textContent = progress.student.roll;
   document.getElementById('reviewAdm').textContent = progress.student.adm;
-  document.getElementById('reviewForm').textContent = assignedForm;
+  // REMOVED: document.getElementById('reviewForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'detailed-results-table';
@@ -4394,7 +4360,7 @@ function resetForm() {
   document.getElementById('stuSection').value = '';
   document.getElementById('stuRoll').value = '';
   document.getElementById('stuAdm').value = '';
-  document.getElementById('formAssignment').style.display = 'none';
+  // REMOVED: document.getElementById('formAssignment').style.display = 'none';
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   window.pendingRecoveryData = null;
