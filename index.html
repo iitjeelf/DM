@@ -3590,6 +3590,10 @@ function renderPalette() {
     btn.className = 'palette-btn';
     btn.textContent = i + 1;
     btn.tabindex = "0";
+    
+    if (examData.questionTypes[i] === 'fill-blank') {
+      btn.style.background = '#FFD700';
+      btn.style.color = '#000';
     }
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
