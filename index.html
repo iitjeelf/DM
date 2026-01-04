@@ -3580,7 +3580,7 @@ function updateQuestionInfo() {
   if (stuQInfoEl) stuQInfoEl.textContent = `Question ${idx+1} of 75 | ${examData.subjectNames[idx]}`;
 }
 
-// ===== PALETTE FUNCTIONS =====
+// ===== PALETTE FUNCTIONS (MODIFIED - ALL QUESTIONS SAME) =====
 function renderPalette() {
   const container = document.getElementById('paletteContainer');
   container.innerHTML = '';
@@ -3591,10 +3591,8 @@ function renderPalette() {
     btn.textContent = i + 1;
     btn.tabindex = "0";
     
-    if (examData.questionTypes[i] === 'fill-blank') {
-      btn.style.background = '#FFD700';
-      btn.style.color = '#000';
-    }
+    // REMOVED: No special styling for fill-blank questions
+    // All questions now look identical in the palette
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
     if (progress.review[i]) btn.classList.add('reviewed');
@@ -3613,16 +3611,10 @@ function renderPalette() {
 function updatePalette() {
   const buttons = document.querySelectorAll('.palette-btn');
   buttons.forEach((btn, i) => {
+    // Reset all classes
     btn.className = 'palette-btn';
     
-    if (examData.questionTypes[i] === 'fill-blank') {
-      btn.style.background = '#FFD700';
-      btn.style.color = '#000';
-    } else {
-      btn.style.background = '';
-      btn.style.color = '';
-    }
-    
+    // Apply status classes only
     if (progress.answers[i] !== null) btn.classList.add('selected');
     if (progress.review[i]) btn.classList.add('reviewed');
     if (i === progress.currentIndex) btn.classList.add('current');
