@@ -325,6 +325,11 @@ button:focus {
   color: white;
 }
 
+/* ===== PURPLE BORDER FOR NUMERICAL QUESTIONS - ADD THIS ===== */
+#paletteContainer button.numerical-border {
+  border: 2px solid #D8BFD8 !important;
+}
+
 /* ===== EXAM AREA STYLES ===== */
 #examArea {
   padding: 16px;
@@ -1471,8 +1476,6 @@ button:focus {
   <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
   <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
 
-  <!-- REMOVED: Form Assignment Display -->
-  
   <!-- RESUME EXAM SECTION -->
   <div id="resumeExamSection">
     <h3>🔄 Exam In Progress Found</h3>
@@ -1538,7 +1541,6 @@ button:focus {
       <b>Section:</b> <span id="summarySection"></span> | 
       <b>Roll:</b> <span id="summaryRoll"></span> | 
       <b>Admission No:</b> <span id="summaryAdm"></span>
-      <!-- REMOVED: | <b>Form:</b> <span id="summaryForm"></span> -->
     </div>
   </div>
   
@@ -1568,7 +1570,6 @@ button:focus {
       <b>Section:</b> <span id="reviewSection"></span> | 
       <b>Roll:</b> <span id="reviewRoll"></span> | 
       <b>Admission No:</b> <span id="reviewAdm"></span>
-      <!-- REMOVED: | <b>Form:</b> <span id="reviewForm"></span> -->
     </div>
   </div>
   
@@ -1620,12 +1621,6 @@ button:focus {
     <button id="adminPassSubmit">Submit</button>
   </div>
 </div>
-
-<!-- Enhanced Screenshot Protection --
-<div id="screenshotProtection">
-  <div class="screenshot-dots"></div>
-</div>
-<div id="screenshotBlock"></div>
 
 <!-- Chrome Menu Blur Overlay -->
 <div id="chromeMenuBlurOverlay"></div>
@@ -2524,9 +2519,6 @@ function resumeFromPowerLoss(progressData) {
     document.getElementById('stuRoll').value = student.roll || '';
     document.getElementById('stuAdm').value = student.adm || '';
     
-    // REMOVED: Form assignment display
-    // updateFormAssignmentDisplay(student);
-    
     // Hide the resume section (we're already resuming)
     document.getElementById('resumeExamSection').style.display = 'none';
     
@@ -3117,8 +3109,6 @@ function getAssignedForm(studentData) {
     return forms[Math.abs(hash) % forms.length];
 }
 
-// REMOVED: updateFormAssignmentDisplay function since we're not displaying form
-
 // ===== PREPARE EXAM DATA =====
 function prepareExamData() {
   examData.files = []; examData.subjectNames = []; examData.keys = []; examData.originalOrder = []; examData.questionTypes = [];
@@ -3364,8 +3354,7 @@ function validateStudentInputs() {
   
   if (v1 && v2 && v3 && v4) {
     const studentData = { name: n.value, sec: s.value, roll: r.value, adm: a.value };
-    // REMOVED: updateFormAssignmentDisplay(studentData);
-    assignedForm = getAssignedForm(studentData); // Still assign internally, just don't display
+    assignedForm = getAssignedForm(studentData);
     document.getElementById('resubmissionSection').style.display = 'none';
     document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
   } else {
@@ -3580,7 +3569,7 @@ function updateQuestionInfo() {
   if (stuQInfoEl) stuQInfoEl.textContent = `Question ${idx+1} of 75 | ${examData.subjectNames[idx]}`;
 }
 
-// ===== PALETTE FUNCTIONS =====
+// ===== PALETTE FUNCTIONS WITH PURPLE BORDER FIX =====
 function renderPalette() {
   const container = document.getElementById('paletteContainer');
   container.innerHTML = '';
@@ -3591,10 +3580,16 @@ function renderPalette() {
     btn.textContent = i + 1;
     btn.tabindex = "0";
     
+    // Add purple border for numerical questions
     if (examData.questionTypes[i] === 'fill-blank') {
-      btn.style.background = '#D8BFD8';
-      btn.style.color = '#000';
+      btn.classList.add('numerical-border');
     }
+    
+    // REMOVE gold background if you want same colors as MCQ
+    // if (examData.questionTypes[i] === 'fill-blank') {
+    //   btn.style.background = '#FFD700';
+    //   btn.style.color = '#000';
+    // }
     
     if (progress.answers[i] !== null) btn.classList.add('selected');
     if (progress.review[i]) btn.classList.add('reviewed');
@@ -3612,17 +3607,32 @@ function renderPalette() {
 
 function updatePalette() {
   const buttons = document.querySelectorAll('.palette-btn');
+  
   buttons.forEach((btn, i) => {
+    // Check if it's a numerical question
+    const isNumerical = examData.questionTypes[i] === 'fill-blank';
+    
+    // Reset all classes
     btn.className = 'palette-btn';
     
-    if (examData.questionTypes[i] === 'fill-blank') {
-      btn.style.background = '#FFD700';
-      btn.style.color = '#000';
-    } else {
-      btn.style.background = '';
-      btn.style.color = '';
+    // RE-ADD PURPLE BORDER FOR NUMERICAL QUESTIONS
+    if (isNumerical) {
+      btn.classList.add('numerical-border');
     }
     
+    const studentAnswer = progress.answers[i];
+    const correctAnswer = examData.keys[i];
+    
+    // Apply color coding (SAME for both MCQ and numerical)
+    if (studentAnswer === null) {
+      btn.classList.add('not-attempted-answer');
+    } else if (studentAnswer === correctAnswer) {
+      btn.classList.add('correct-answer');
+    } else {
+      btn.classList.add('wrong-answer');
+    }
+    
+    // Additional indicators
     if (progress.answers[i] !== null) btn.classList.add('selected');
     if (progress.review[i]) btn.classList.add('reviewed');
     if (i === progress.currentIndex) btn.classList.add('current');
@@ -4140,7 +4150,6 @@ function showSummaryInterface(subjData) {
   document.getElementById('summarySection').textContent = progress.student.sec;
   document.getElementById('summaryRoll').textContent = progress.student.roll;
   document.getElementById('summaryAdm').textContent = progress.student.adm;
-  // REMOVED: document.getElementById('summaryForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'results-table';
@@ -4216,7 +4225,6 @@ function showDetailedSolutions() {
   document.getElementById('reviewSection').textContent = progress.student.sec;
   document.getElementById('reviewRoll').textContent = progress.student.roll;
   document.getElementById('reviewAdm').textContent = progress.student.adm;
-  // REMOVED: document.getElementById('reviewForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'detailed-results-table';
@@ -4360,7 +4368,6 @@ function resetForm() {
   document.getElementById('stuSection').value = '';
   document.getElementById('stuRoll').value = '';
   document.getElementById('stuAdm').value = '';
-  // REMOVED: document.getElementById('formAssignment').style.display = 'none';
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   window.pendingRecoveryData = null;
