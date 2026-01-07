@@ -1316,32 +1316,6 @@ button:focus {
   color: white;
 }
 
-/* ===== ANTI-IDLE ACTIVITY MONITOR STYLES ===== */
-.activity-monitor {
-  position: fixed;
-  bottom: 60px;
-  right: 10px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #32CD32;
-  z-index: 9998;
-  animation: antiIdlePulse 2s infinite;
-  box-shadow: 0 0 10px #32CD32;
-}
-
-.activity-monitor.inactive {
-  background: #FF6B6B;
-  animation: none;
-  box-shadow: 0 0 10px #FF6B6B;
-}
-
-@keyframes antiIdlePulse {
-  0% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.2); }
-  100% { opacity: 0.3; transform: scale(1); }
-}
-
 /* ===== RESPONSIVE STYLES ===== */
 @media (max-width: 600px) {
   #accessDeniedBox h1 {
@@ -1434,6 +1408,22 @@ button:focus {
   #paletteContainer {
     grid-template-columns: repeat(20, 1fr) !important;
   }
+}
+
+/* ===== ANTI-SLEEP CLICK FEEDBACK STYLES ===== */
+@keyframes clickFeedback {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Keep-awake animation */
+@keyframes antiSleepPulse {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(0.1px); }
+}
+
+body.anti-sleep-active {
+  animation: antiSleepPulse 60s infinite;
 }
 </style>
 </head>
@@ -1648,16 +1638,10 @@ button:focus {
   </div>
 </div>
 
-<!-- Enhanced Screenshot Protection --
-<div id="screenshotProtection">
-  <div class="screenshot-dots"></div>
-</div>
-<div id="screenshotBlock"></div>
-
 <!-- Chrome Menu Blur Overlay -->
 <div id="chromeMenuBlurOverlay"></div>
 
-<!-- Connection Status Indicator (will be created by JavaScript) -->
+<!-- Connection Status Indicator -->
 <div id="autoSaveIndicator">Auto-saved ✓</div>
 
 <script>
@@ -1780,10 +1764,9 @@ let autoSaveIndicator = null;
 let powerLossRecoveryData = null;
 let resumeInProgress = false;
 
-// ===== IMPROVED ANTI-IDLE CURSOR MOVEMENT VARIABLES =====
-let antiIdleInterval = null;
-let cursorMovementActive = false;
-let lastUserActivity = Date.now();
+// ===== AUTO-CLICK SYSTEM VARIABLES =====
+let autoClickInterval = null;
+let keepAwakeSystem = null;
 
 // SYSTEM TRAY SECURITY VARIABLES
 let systemTrayViolations = 0;
@@ -1796,289 +1779,457 @@ const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
 
-// ===== IMPROVED ANTI-IDLE CURSOR MOVEMENT FUNCTIONS =====
-function startAntiIdleCursor() {
-    console.log('🔄 Starting improved anti-idle cursor movement');
-    
-    if (antiIdleInterval) {
-        clearInterval(antiIdleInterval);
-        antiIdleInterval = null;
+// ===== AUTO-CLICK SYSTEM =====
+function startAutoClick() {
+    if (autoClickInterval) {
+        clearInterval(autoClickInterval);
     }
     
-    cursorMovementActive = true;
-    lastUserActivity = Date.now();
+    console.log('🖱️ Starting auto-click system (every 30 seconds)');
     
-    // Track real user activity
-    document.addEventListener('mousemove', trackUserActivity, true);
-    document.addEventListener('click', trackUserActivity, true);
-    document.addEventListener('keydown', trackUserActivity, true);
-    document.addEventListener('touchstart', trackUserActivity, true);
-    document.addEventListener('scroll', trackUserActivity, true);
+    // Track real clicks to simulate in similar positions
+    document.addEventListener('click', function(e) {
+        window.lastClickPosition = { x: e.clientX, y: e.clientY };
+    });
     
-    // Create a virtual cursor element (for visual feedback and better movement)
-    createVirtualCursor();
+    // Start with default position (center of screen)
+    if (!window.lastClickPosition) {
+        window.lastClickPosition = {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2
+        };
+    }
     
-    // Setup activity monitor
-    setupActivityMonitoring();
-    
-    // Move cursor every 10 seconds (more frequent)
-    antiIdleInterval = setInterval(() => {
+    autoClickInterval = setInterval(function() {
         if (!examInProgress || document.hidden) return;
         
-        const timeSinceLastActivity = Date.now() - lastUserActivity;
+        try {
+            // Generate a real click event
+            performAutoClick();
+        } catch (error) {
+            console.error('Auto-click error:', error);
+        }
+    }, 30000); // Every 30 seconds
+    
+    // Also do an immediate click
+    setTimeout(performAutoClick, 1000);
+}
+
+function performAutoClick() {
+    if (!examInProgress) return;
+    
+    const currentTime = Date.now();
+    
+    // Don't click too frequently (safety check)
+    if (window.lastAutoClickTime && currentTime - window.lastAutoClickTime < 1000) {
+        return;
+    }
+    
+    window.lastAutoClickTime = currentTime;
+    
+    // Generate random position near last click (so it's not always same spot)
+    const randomX = window.lastClickPosition.x + (Math.random() * 100 - 50);
+    const randomY = window.lastClickPosition.y + (Math.random() * 100 - 50);
+    
+    // Ensure position is within viewport
+    const safeX = Math.max(10, Math.min(window.innerWidth - 10, randomX));
+    const safeY = Math.max(10, Math.min(window.innerHeight - 10, randomY));
+    
+    console.log(`🖱️ Auto-clicking at position (${Math.round(safeX)}, ${Math.round(safeY)})`);
+    
+    // Create and dispatch ALL mouse events to simulate real click
+    simulateRealClick(safeX, safeY);
+    
+    // Also update stored position
+    window.lastClickPosition.x = safeX;
+    window.lastClickPosition.y = safeY;
+}
+
+function simulateRealClick(x, y) {
+    try {
+        // Get the element at this position
+        const element = document.elementFromPoint(x, y) || document.body;
         
-        // Only move if user has been idle for 30+ seconds
-        if (timeSinceLastActivity < 30000) {
-            console.log('User active recently, skipping auto-movement');
-            return;
+        if (!element) return;
+        
+        // Create full sequence of mouse events (like real click)
+        const events = [
+            { type: 'mousemove', clientX: x, clientY: y },
+            { type: 'mousedown', clientX: x, clientY: y, button: 0 },
+            { type: 'mouseup', clientX: x, clientY: y, button: 0 },
+            { type: 'click', clientX: x, clientY: y, button: 0 }
+        ];
+        
+        events.forEach(eventConfig => {
+            const event = new MouseEvent(eventConfig.type, {
+                view: window,
+                bubbles: true,
+                cancelable: true,
+                clientX: eventConfig.clientX,
+                clientY: eventConfig.clientY,
+                button: eventConfig.button || 0,
+                buttons: eventConfig.type === 'mousedown' ? 1 : 0
+            });
+            
+            element.dispatchEvent(event);
+        });
+        
+        // Also focus the element if it's focusable
+        if (element.tabIndex >= 0 || 
+            element.tagName === 'INPUT' || 
+            element.tagName === 'BUTTON' ||
+            element.tagName === 'TEXTAREA' ||
+            element.tagName === 'SELECT') {
+            element.focus();
         }
         
+        // Visual feedback (optional - for debugging)
+        showClickFeedback(x, y);
+        
+    } catch (error) {
+        console.error('Click simulation error:', error);
+    }
+}
+
+function showClickFeedback(x, y) {
+    // Create a temporary visual indicator
+    const feedback = document.createElement('div');
+    feedback.style.cssText = `
+        position: fixed;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(0, 255, 0, 0.3);
+        border: 2px solid rgba(0, 255, 0, 0.7);
+        pointer-events: none;
+        z-index: 999999;
+        left: ${x - 10}px;
+        top: ${y - 10}px;
+        animation: clickFeedback 0.5s forwards;
+    `;
+    
+    document.body.appendChild(feedback);
+    
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.parentNode.removeChild(feedback);
+        }
+    }, 500);
+}
+
+function stopAutoClick() {
+    if (autoClickInterval) {
+        clearInterval(autoClickInterval);
+        autoClickInterval = null;
+        console.log('🛑 Auto-click system stopped');
+    }
+}
+
+// ===== COMPREHENSIVE KEEP-AWAKE SYSTEM =====
+class KeepAwakeSystem {
+    constructor() {
+        this.intervals = [];
+        this.wakeLock = null;
+        this.videoElement = null;
+        this.audioContext = null;
+    }
+    
+    start() {
+        console.log('🔋 Starting comprehensive keep-awake system');
+        
+        // 1. Start auto-click every 30 seconds
+        this.startAutoClickSystem();
+        
+        // 2. Add keyboard events (Shift key every 45 seconds)
+        this.startKeyboardActivity();
+        
+        // 3. Add visual activity
+        this.startVisualActivity();
+        
+        // 4. Use Wake Lock API if available
+        this.startWakeLock();
+        
+        // 5. Silent video playback (most effective)
+        this.startSilentVideo();
+        
+        // 6. Safe click zones
+        this.createSafeClickZones();
+        
+        console.log('✅ Keep-awake system fully activated');
+    }
+    
+    startAutoClickSystem() {
+        // Click every 30 seconds
+        const clickInterval = setInterval(() => {
+            if (!examInProgress || document.hidden) return;
+            performSmartClick();
+        }, 30000);
+        
+        this.intervals.push(clickInterval);
+        
+        // Do initial click
+        setTimeout(() => {
+            if (examInProgress) performSmartClick();
+        }, 2000);
+    }
+    
+    startKeyboardActivity() {
+        // Simulate keyboard activity every 45 seconds
+        const keyboardInterval = setInterval(() => {
+            if (!examInProgress || document.hidden) return;
+            
+            try {
+                // Simulate Shift key press
+                const keyDown = new KeyboardEvent('keydown', {
+                    key: 'Shift',
+                    code: 'ShiftLeft',
+                    keyCode: 16,
+                    bubbles: true,
+                    cancelable: true
+                });
+                
+                const keyUp = new KeyboardEvent('keyup', {
+                    key: 'Shift',
+                    code: 'ShiftLeft',
+                    keyCode: 16,
+                    bubbles: true,
+                    cancelable: true
+                });
+                
+                document.dispatchEvent(keyDown);
+                setTimeout(() => document.dispatchEvent(keyUp), 100);
+                
+                console.log('⌨️ Simulated keyboard activity');
+                
+            } catch (error) {
+                console.error('Keyboard activity error:', error);
+            }
+        }, 45000);
+        
+        this.intervals.push(keyboardInterval);
+    }
+    
+    startVisualActivity() {
+        // Change document title slightly (some systems monitor this)
+        let titleCounter = 0;
+        const originalTitle = document.title;
+        
+        const titleInterval = setInterval(() => {
+            if (!examInProgress) return;
+            
+            titleCounter++;
+            if (titleCounter % 2 === 0) {
+                document.title = '• ' + originalTitle;
+            } else {
+                document.title = originalTitle;
+            }
+        }, 25000);
+        
+        this.intervals.push(titleInterval);
+    }
+    
+    async startWakeLock() {
         try {
-            console.log('🖱️ Performing anti-idle cursor movement');
+            if ('wakeLock' in navigator) {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                console.log('✅ Wake Lock acquired');
+                
+                // Reacquire on visibility change
+                document.addEventListener('visibilitychange', async () => {
+                    if (document.visibilityState === 'visible' && examInProgress && this.wakeLock === null) {
+                        try {
+                            this.wakeLock = await navigator.wakeLock.request('screen');
+                            console.log('🔄 Wake lock reacquired');
+                        } catch (err) {
+                            console.error('Wake lock reacquisition failed:', err);
+                        }
+                    }
+                });
+            }
+        } catch (err) {
+            console.log('Wake Lock not available:', err.message);
+        }
+    }
+    
+    startSilentVideo() {
+        try {
+            // Create a 1x1 pixel video element
+            this.videoElement = document.createElement('video');
+            this.videoElement.style.cssText = `
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                opacity: 0.001;
+                pointer-events: none;
+                z-index: -9999;
+            `;
             
-            // Method 1: Use virtual cursor element (more reliable)
-            moveVirtualCursor();
+            // Create canvas stream
+            const canvas = document.createElement('canvas');
+            canvas.width = 2;
+            canvas.height = 2;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 2, 2);
             
-            // Method 2: Simulate small random movement with mouse events
-            simulateMouseMovement();
+            const stream = canvas.captureStream(1); // 1 FPS
+            this.videoElement.srcObject = stream;
+            this.videoElement.muted = true;
+            this.videoElement.autoplay = true;
+            this.videoElement.loop = true;
             
-            // Method 3: Trigger keyboard activity
-            simulateKeyboardActivity();
+            document.body.appendChild(this.videoElement);
             
-            // Show subtle visual feedback
-            showAntiIdleIndicator();
+            // Try to play
+            this.videoElement.play().catch(e => {
+                console.log('Video play failed:', e);
+            });
             
         } catch (error) {
-            console.warn('Cursor movement error:', error);
-            // Fallback: Focus on exam area
-            document.getElementById('examArea')?.focus();
+            console.error('Silent video failed:', error);
         }
-    }, 10000); // Every 10 seconds
-    
-    console.log('✅ Anti-idle cursor movement enabled');
-}
-
-function trackUserActivity() {
-    lastUserActivity = Date.now();
-    // console.log('User activity detected');
-}
-
-function createVirtualCursor() {
-    // Remove existing virtual cursor
-    const existingCursor = document.getElementById('virtualCursor');
-    if (existingCursor) existingCursor.remove();
-    
-    // Create a hidden cursor element
-    const cursor = document.createElement('div');
-    cursor.id = 'virtualCursor';
-    cursor.style.cssText = `
-        position: fixed;
-        width: 1px;
-        height: 1px;
-        background: transparent;
-        z-index: -9999;
-        pointer-events: none;
-        opacity: 0;
-    `;
-    document.body.appendChild(cursor);
-}
-
-function moveVirtualCursor() {
-    const cursor = document.getElementById('virtualCursor');
-    if (!cursor) return;
-    
-    // Move to random position within viewport
-    const x = Math.floor(Math.random() * (window.innerWidth - 100)) + 50;
-    const y = Math.floor(Math.random() * (window.innerHeight - 100)) + 50;
-    
-    cursor.style.left = `${x}px`;
-    cursor.style.top = `${y}px`;
-    
-    // Trigger a mouseover event on the cursor
-    const mouseOverEvent = new MouseEvent('mouseover', {
-        clientX: x,
-        clientY: y,
-        bubbles: true,
-        cancelable: true,
-        view: window
-    });
-    cursor.dispatchEvent(mouseOverEvent);
-}
-
-function simulateMouseMovement() {
-    // Generate more significant movement (10-30 pixels)
-    const deltaX = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 20);
-    const deltaY = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 20);
-    
-    // Get current mouse position or use center
-    let currentX = window.innerWidth / 2;
-    let currentY = window.innerHeight / 2;
-    
-    // Try to get actual mouse position from last known event
-    if (typeof window.lastMouseX !== 'undefined') {
-        currentX = window.lastMouseX;
-        currentY = window.lastMouseY;
     }
     
-    // Calculate new position
-    let newX = currentX + deltaX;
-    let newY = currentY + deltaY;
-    
-    // Keep within bounds
-    newX = Math.max(50, Math.min(window.innerWidth - 50, newX));
-    newY = Math.max(50, Math.min(window.innerHeight - 50, newY));
-    
-    // Store new position
-    window.lastMouseX = newX;
-    window.lastMouseY = newY;
-    
-    // Create and dispatch mouse move event
-    const mouseMoveEvent = new MouseEvent('mousemove', {
-        clientX: newX,
-        clientY: newY,
-        screenX: newX,
-        screenY: newY,
-        bubbles: true,
-        cancelable: true,
-        view: window
-    });
-    
-    document.dispatchEvent(mouseMoveEvent);
-    
-    // Also dispatch a mouseover event on the document
-    const mouseOverEvent = new MouseEvent('mouseover', {
-        clientX: newX,
-        clientY: newY,
-        bubbles: true,
-        cancelable: true,
-        view: window
-    });
-    document.dispatchEvent(mouseOverEvent);
-    
-    console.log(`Simulated mouse move: ${Math.round(deltaX)}px, ${Math.round(deltaY)}px`);
-}
-
-function simulateKeyboardActivity() {
-    // Simulate harmless key presses
-    const keys = ['Shift', 'Control', 'Alt', 'Tab'];
-    const randomKey = keys[Math.floor(Math.random() * keys.length)];
-    
-    const keyDownEvent = new KeyboardEvent('keydown', {
-        key: randomKey,
-        code: randomKey,
-        keyCode: randomKey === 'Shift' ? 16 : randomKey === 'Control' ? 17 : randomKey === 'Alt' ? 18 : 9,
-        bubbles: true,
-        cancelable: true,
-        view: window
-    });
-    
-    const keyUpEvent = new KeyboardEvent('keyup', {
-        key: randomKey,
-        code: randomKey,
-        keyCode: randomKey === 'Shift' ? 16 : randomKey === 'Control' ? 17 : randomKey === 'Alt' ? 18 : 9,
-        bubbles: true,
-        cancelable: true,
-        view: window
-    });
-    
-    document.dispatchEvent(keyDownEvent);
-    document.dispatchEvent(keyUpEvent);
-    
-    console.log(`Simulated keyboard activity: ${randomKey}`);
-}
-
-function showAntiIdleIndicator() {
-    // Create or update indicator
-    let indicator = document.getElementById('antiIdleIndicator');
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'antiIdleIndicator';
-        indicator.style.cssText = `
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(75, 0, 130, 0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s;
-        `;
-        document.body.appendChild(indicator);
-    }
-    
-    indicator.textContent = `🖱️ Auto-activity: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-    indicator.style.opacity = '0.7';
-    
-    // Fade out after 2 seconds
-    setTimeout(() => {
-        indicator.style.opacity = '0';
-    }, 2000);
-}
-
-function stopAntiIdleCursor() {
-    if (antiIdleInterval) {
-        clearInterval(antiIdleInterval);
-        antiIdleInterval = null;
-    }
-    
-    cursorMovementActive = false;
-    
-    // Remove event listeners
-    document.removeEventListener('mousemove', trackUserActivity, true);
-    document.removeEventListener('click', trackUserActivity, true);
-    document.removeEventListener('keydown', trackUserActivity, true);
-    document.removeEventListener('touchstart', trackUserActivity, true);
-    document.removeEventListener('scroll', trackUserActivity, true);
-    
-    // Remove virtual cursor
-    const cursor = document.getElementById('virtualCursor');
-    if (cursor) cursor.remove();
-    
-    // Remove indicator
-    const indicator = document.getElementById('antiIdleIndicator');
-    if (indicator) indicator.remove();
-    
-    // Remove activity monitor
-    const monitor = document.getElementById('activityMonitor');
-    if (monitor) monitor.remove();
-    
-    console.log('🛑 Anti-idle cursor movement stopped');
-}
-
-function setupActivityMonitoring() {
-    // Create activity monitor
-    const monitor = document.createElement('div');
-    monitor.id = 'activityMonitor';
-    monitor.className = 'activity-monitor';
-    monitor.title = 'Activity Monitor: Green = Active';
-    document.body.appendChild(monitor);
-    
-    // Update monitor based on activity
-    setInterval(() => {
-        if (!examInProgress) return;
-        
-        const timeSinceLastActivity = Date.now() - lastUserActivity;
-        const monitorEl = document.getElementById('activityMonitor');
-        if (monitorEl) {
-            if (timeSinceLastActivity > 60000) { // 1 minute
-                monitorEl.classList.add('inactive');
-                monitorEl.title = '⚠️ No activity detected for 1+ minute';
-            } else {
-                monitorEl.classList.remove('inactive');
-                monitorEl.title = '✓ Active in last minute';
+    createSafeClickZones() {
+        // Add CSS animation to body
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes antiSleepPulse {
+                0% { transform: translateY(0); }
+                100% { transform: translateY(0.1px); }
             }
+            body.anti-sleep-active {
+                animation: antiSleepPulse 60s infinite;
+            }
+            
+            .safe-click-zone {
+                position: fixed;
+                width: 50px;
+                height: 50px;
+                background: transparent;
+                pointer-events: auto;
+                cursor: default;
+                z-index: 9997;
+            }
+            .safe-click-zone.top-left { top: 0; left: 0; }
+            .safe-click-zone.top-right { top: 0; right: 0; }
+            .safe-click-zone.bottom-left { bottom: 0; left: 0; }
+            .safe-click-zone.bottom-right { bottom: 0; right: 0; }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.classList.add('anti-sleep-active');
+        
+        // Create safe click zones in corners
+        const corners = [
+            { className: 'top-left', top: 0, left: 0 },
+            { className: 'top-right', top: 0, right: 0 },
+            { className: 'bottom-left', bottom: 0, left: 0 },
+            { className: 'bottom-right', bottom: 0, right: 0 }
+        ];
+        
+        corners.forEach(corner => {
+            const zone = document.createElement('div');
+            zone.className = `safe-click-zone ${corner.className}`;
+            zone.title = 'Safe click zone (prevents screen sleep)';
+            
+            zone.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`✅ Safe click in ${corner.className} corner`);
+            });
+            
+            document.body.appendChild(zone);
+        });
+    }
+    
+    stop() {
+        // Clear all intervals
+        this.intervals.forEach(interval => clearInterval(interval));
+        this.intervals = [];
+        
+        // Stop auto-click
+        stopAutoClick();
+        
+        // Release wake lock
+        if (this.wakeLock) {
+            this.wakeLock.release();
+            this.wakeLock = null;
         }
-    }, 10000);
+        
+        // Remove video
+        if (this.videoElement) {
+            this.videoElement.pause();
+            if (this.videoElement.parentNode) {
+                this.videoElement.parentNode.removeChild(this.videoElement);
+            }
+            this.videoElement = null;
+        }
+        
+        // Remove audio context
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+        
+        // Remove CSS class
+        document.body.classList.remove('anti-sleep-active');
+        
+        // Remove safe click zones
+        document.querySelectorAll('.safe-click-zone').forEach(zone => {
+            if (zone.parentNode) {
+                zone.parentNode.removeChild(zone);
+            }
+        });
+        
+        // Reset title
+        const originalTitle = document.title.replace(/^•\s*/, '');
+        document.title = originalTitle;
+        
+        console.log('🛑 Keep-awake system stopped');
+    }
 }
 
-// Track mouse position globally
-document.addEventListener('mousemove', (e) => {
-    window.lastMouseX = e.clientX;
-    window.lastMouseY = e.clientY;
-}, true);
+// Smart click function
+function performSmartClick() {
+    if (!examInProgress) return;
+    
+    try {
+        // Strategy: Click on safe zones (corners)
+        const safeZones = document.querySelectorAll('.safe-click-zone');
+        if (safeZones.length > 0) {
+            // Pick a random safe zone
+            const randomZone = safeZones[Math.floor(Math.random() * safeZones.length)];
+            const rect = randomZone.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            // Dispatch click event
+            const clickEvent = new MouseEvent('click', {
+                view: window,
+                bubbles: true,
+                cancelable: true,
+                clientX: x,
+                clientY: y,
+                button: 0
+            });
+            
+            randomZone.dispatchEvent(clickEvent);
+            console.log(`🎯 Smart click on safe zone: ${randomZone.className}`);
+        } else {
+            // Fallback: Click on body
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            simulateRealClick(x, y);
+        }
+        
+    } catch (error) {
+        console.error('Smart click error:', error);
+    }
+}
+
+// Initialize keep awake system
+keepAwakeSystem = new KeepAwakeSystem();
 
 // ===== SYSTEM TRAY & SEARCH BAR SECURITY CLASS =====
 class SystemTrayViolationDetector {
@@ -2840,9 +2991,6 @@ function resumeFromPowerLoss(progressData) {
     document.getElementById('stuRoll').value = student.roll || '';
     document.getElementById('stuAdm').value = student.adm || '';
     
-    // REMOVED: Form assignment display
-    // updateFormAssignmentDisplay(student);
-    
     // Hide the resume section (we're already resuming)
     document.getElementById('resumeExamSection').style.display = 'none';
     
@@ -2896,8 +3044,8 @@ function startExamWithRecovery(progressData) {
     startTimer();
     updateNavButtons();
     
-    // Start anti-idle cursor movement
-    startAntiIdleCursor();
+    // Start keep-awake system
+    keepAwakeSystem.start();
     
     // Enable all security systems
     examSecurity.enable();
@@ -3436,8 +3584,6 @@ function getAssignedForm(studentData) {
     return forms[Math.abs(hash) % forms.length];
 }
 
-// REMOVED: updateFormAssignmentDisplay function since we're not displaying form
-
 // ===== PREPARE EXAM DATA =====
 function prepareExamData() {
   examData.files = []; examData.subjectNames = []; examData.keys = []; examData.originalOrder = []; examData.questionTypes = [];
@@ -3683,8 +3829,7 @@ function validateStudentInputs() {
   
   if (v1 && v2 && v3 && v4) {
     const studentData = { name: n.value, sec: s.value, roll: r.value, adm: a.value };
-    // REMOVED: updateFormAssignmentDisplay(studentData);
-    assignedForm = getAssignedForm(studentData); // Still assign internally, just don't display
+    assignedForm = getAssignedForm(studentData);
     document.getElementById('resubmissionSection').style.display = 'none';
     document.getElementById('stuStartBtn').style.display = allValid ? "inline-block" : "none";
   } else {
@@ -3876,8 +4021,8 @@ function startExam(studentKey) {
 
     examInProgress = true;
     
-    // Start anti-idle cursor movement
-    startAntiIdleCursor();
+    // Start keep-awake system
+    keepAwakeSystem.start();
     
     document.getElementById('studentEntry').style.display = "none";
     document.getElementById('examArea').style.display = "block";
@@ -4368,8 +4513,8 @@ function submitExam() {
   if (hasSubmitted) return;
   clearInterval(timerInterval);
   
-  // Stop anti-idle cursor movement
-  stopAntiIdleCursor();
+  // Stop keep-awake system
+  keepAwakeSystem.stop();
   
   if (autoSaveTimer) {
     clearInterval(autoSaveTimer);
@@ -4465,7 +4610,6 @@ function showSummaryInterface(subjData) {
   document.getElementById('summarySection').textContent = progress.student.sec;
   document.getElementById('summaryRoll').textContent = progress.student.roll;
   document.getElementById('summaryAdm').textContent = progress.student.adm;
-  // REMOVED: document.getElementById('summaryForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'results-table';
@@ -4541,7 +4685,6 @@ function showDetailedSolutions() {
   document.getElementById('reviewSection').textContent = progress.student.sec;
   document.getElementById('reviewRoll').textContent = progress.student.roll;
   document.getElementById('reviewAdm').textContent = progress.student.adm;
-  // REMOVED: document.getElementById('reviewForm').textContent = assignedForm;
   
   const table = document.createElement('table');
   table.className = 'detailed-results-table';
@@ -4685,7 +4828,6 @@ function resetForm() {
   document.getElementById('stuSection').value = '';
   document.getElementById('stuRoll').value = '';
   document.getElementById('stuAdm').value = '';
-  // REMOVED: document.getElementById('formAssignment').style.display = 'none';
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   window.pendingRecoveryData = null;
@@ -4756,7 +4898,8 @@ window.addEventListener('load', function() {
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
   console.log('📁 EXTERNAL ANSWER KEY: Will load from answer-key.txt');
-  console.log('🖱️ IMPROVED ANTI-IDLE CURSOR: Auto-move every 10 seconds when idle');
+  console.log('🖱️ AUTO-CLICK SYSTEM: Clicks every 30 seconds to prevent screen sleep');
+  console.log('🔋 KEEP-AWAKE SYSTEM: Multiple layers to prevent screen sleep');
   
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
@@ -4789,7 +4932,8 @@ window.addEventListener('load', function() {
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
 console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
-console.log("🖱️ IMPROVED Anti-idle cursor movement enabled - only activates after 30 seconds of inactivity");
+console.log("🖱️ Auto-click system enabled: Clicks every 30 seconds to prevent screen sleep");
+console.log("🔋 Keep-awake system: Wake Lock, silent video, keyboard activity, safe click zones");
 </script>
 </body>
 </html>
