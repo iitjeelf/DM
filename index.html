@@ -844,7 +844,7 @@ button:focus {
 .submission-error {
   background: #f8d7da;
   color: #721c24;
-  border: 1px solid #f5c6cb);
+  border: 1px solid #f5c6cb;
 }
 
 .submission-pending {
@@ -1316,6 +1316,39 @@ button:focus {
   color: white;
 }
 
+/* ===== KEY VIOLATION VISUAL FEEDBACK ===== */
+@keyframes keyViolationFlash {
+    0% { background-color: rgba(255, 0, 0, 0.3); }
+    50% { background-color: rgba(255, 0, 0, 0.7); }
+    100% { background-color: rgba(255, 0, 0, 0.3); }
+}
+
+.key-violation-active {
+    animation: keyViolationFlash 0.5s 3;
+}
+
+.key-blocked-message {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 0, 0, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    z-index: 9999;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Windows key specific warning */
+.windows-key-warning {
+    background: linear-gradient(145deg, #dc3545, #c82333);
+    border: 3px solid white;
+    animation: shakeWarning 0.5s ease-in-out;
+}
+
 /* ===== RESPONSIVE STYLES ===== */
 @media (max-width: 600px) {
   #accessDeniedBox h1 {
@@ -1488,8 +1521,6 @@ body.anti-sleep-active {
   <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
   <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
 
-  <!-- REMOVED: Form Assignment Display -->
-  
   <!-- RESUME EXAM SECTION -->
   <div id="resumeExamSection">
     <h3>🔄 Exam In Progress Found</h3>
@@ -1555,7 +1586,6 @@ body.anti-sleep-active {
       <b>Section:</b> <span id="summarySection"></span> | 
       <b>Roll:</b> <span id="summaryRoll"></span> | 
       <b>Admission No:</b> <span id="summaryAdm"></span>
-      <!-- REMOVED: | <b>Form:</b> <span id="summaryForm"></span> -->
     </div>
   </div>
   
@@ -1585,7 +1615,6 @@ body.anti-sleep-active {
       <b>Section:</b> <span id="reviewSection"></span> | 
       <b>Roll:</b> <span id="reviewRoll"></span> | 
       <b>Admission No:</b> <span id="reviewAdm"></span>
-      <!-- REMOVED: | <b>Form:</b> <span id="reviewForm"></span> -->
     </div>
   </div>
   
@@ -1775,9 +1804,314 @@ let lastSystemTrayViolationTime = 0;
 let systemTrayCheckInterval = null;
 let systemTrayDetector = null;
 
+// KEY BLOCKING SYSTEM VARIABLES
+let keyBlockingSystem = null;
+
 const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
+
+// ===== COMPREHENSIVE KEY BLOCKING SYSTEM =====
+class KeyBlockingSystem {
+    constructor() {
+        this.blockedKeys = new Set([
+            'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
+            'PrintScreen', 'ScrollLock', 'Pause', 'Escape',
+            'Meta', 'Win', 'OS', 'ContextMenu'
+        ]);
+        
+        this.blockedCombinations = [
+            { key: 'r', ctrl: true, meta: false, alt: false },      // Ctrl+R (Refresh)
+            { key: 'r', ctrl: false, meta: true, alt: false },      // Cmd+R (Mac Refresh)
+            { key: 'f5', ctrl: false, meta: false, alt: false },    // F5
+            { key: 'r', ctrl: false, meta: false, alt: true },      // Alt+R (Some browsers)
+            { key: 'f4', ctrl: false, meta: false, alt: true },     // Alt+F4
+            { key: 'tab', ctrl: false, meta: false, alt: true },    // Alt+Tab
+            { key: 'tab', ctrl: false, meta: true, alt: false },    // Cmd+Tab (Mac)
+            { key: 'w', ctrl: true, meta: false, alt: false },      // Ctrl+W (Close tab)
+            { key: 'w', ctrl: false, meta: true, alt: false },      // Cmd+W (Mac close tab)
+            { key: 'q', ctrl: true, meta: false, alt: false },      // Ctrl+Q (Quit)
+            { key: 'q', ctrl: false, meta: true, alt: false },      // Cmd+Q (Mac quit)
+            { key: 'n', ctrl: true, meta: false, alt: false },      // Ctrl+N (New window)
+            { key: 't', ctrl: true, meta: false, alt: false },      // Ctrl+T (New tab)
+            { key: 't', ctrl: false, meta: true, alt: false },      // Cmd+T (Mac new tab)
+            { key: 'l', ctrl: true, meta: false, alt: false },      // Ctrl+L (Focus address bar)
+            { key: 'l', ctrl: false, meta: true, alt: false },      // Cmd+L (Mac focus address bar)
+            { key: 's', ctrl: true, meta: false, alt: false },      // Ctrl+S (Save)
+            { key: 's', ctrl: false, meta: true, alt: false },      // Cmd+S (Mac save)
+            { key: 'p', ctrl: true, meta: false, alt: false },      // Ctrl+P (Print)
+            { key: 'p', ctrl: false, meta: true, alt: false },      // Cmd+P (Mac print)
+            { key: 'i', ctrl: true, meta: false, alt: true },       // Ctrl+Shift+I (DevTools)
+            { key: 'i', ctrl: false, meta: true, alt: true },       // Cmd+Option+I (Mac DevTools)
+            { key: 'j', ctrl: true, meta: false, alt: true },       // Ctrl+Shift+J (DevTools Console)
+            { key: 'u', ctrl: true, meta: false, alt: false },      // Ctrl+U (View Source)
+            { key: 'u', ctrl: false, meta: true, alt: false },      // Cmd+U (Mac view source)
+            { key: 'd', ctrl: false, meta: true, alt: false },      // Windows+D (Show desktop)
+            { key: 'e', ctrl: false, meta: true, alt: false },      // Windows+E (File Explorer)
+            { key: 'r', ctrl: false, meta: true, alt: false },      // Windows+R (Run dialog)
+            { key: 'x', ctrl: false, meta: true, alt: false },      // Windows+X (Power User Menu)
+            { key: 's', ctrl: false, meta: true, alt: false },      // Windows+S (Search)
+            { key: 'l', ctrl: false, meta: true, alt: false },      // Windows+L (Lock computer)
+            { key: 'tab', ctrl: false, meta: true, alt: false },    // Windows+Tab (Task View)
+            { key: 'arrowleft', ctrl: false, meta: true, alt: false }, // Windows+Left (Snap left)
+            { key: 'arrowright', ctrl: false, meta: true, alt: false }, // Windows+Right (Snap right)
+            { key: 'arrowup', ctrl: false, meta: true, alt: false }, // Windows+Up (Maximize)
+            { key: 'arrowdown', ctrl: false, meta: true, alt: false }  // Windows+Down (Minimize)
+        ];
+        
+        this.enabled = false;
+        this.violationCount = 0;
+        this.lastViolationTime = 0;
+        console.log('🔒 Key Blocking System Initialized');
+    }
+    
+    enable() {
+        if (this.enabled) return;
+        
+        this.setupKeyListeners();
+        this.enabled = true;
+        console.log('✅ Key Blocking System Enabled');
+        
+        // Add to existing violation counter
+        this.violationCount = 0;
+        
+        return this;
+    }
+    
+    disable() {
+        this.enabled = false;
+        console.log('🔓 Key Blocking System Disabled');
+    }
+    
+    setupKeyListeners() {
+        // Prevent default for all key events at capture phase
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e), true);
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e), true);
+        document.addEventListener('keypress', (e) => this.handleKeyPress(e), true);
+        
+        // Also prevent context menu on right-click
+        document.addEventListener('contextmenu', (e) => {
+            if (examInProgress) {
+                e.preventDefault();
+                this.handleViolation('Right-click context menu');
+                return false;
+            }
+        }, true);
+    }
+    
+    handleKeyDown(e) {
+        if (!this.enabled || !examInProgress) return;
+        
+        const key = e.key.toLowerCase();
+        const keyCode = e.keyCode || e.which;
+        
+        // Check for Windows/Meta key alone
+        if (key === 'meta' || key === 'win' || key === 'os' || keyCode === 91 || keyCode === 92) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            this.handleViolation('Windows/Meta key pressed');
+            return false;
+        }
+        
+        // Check blocked single keys (F1-F12, PrintScreen, etc.)
+        if (this.blockedKeys.has(e.key) || this.blockedKeys.has(key.toUpperCase())) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            this.handleViolation(`${e.key} key pressed`);
+            return false;
+        }
+        
+        // Check for function keys (F1-F12)
+        if (key.startsWith('f') && key.length > 1 && !isNaN(key.substring(1))) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            this.handleViolation(`${e.key} key pressed`);
+            return false;
+        }
+        
+        // Check blocked combinations
+        for (const combo of this.blockedCombinations) {
+            if (key === combo.key.toLowerCase() && 
+                e.ctrlKey === combo.ctrl && 
+                e.metaKey === combo.meta && 
+                e.altKey === combo.alt) {
+                
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                this.handleViolation(`${combo.ctrl ? 'Ctrl+' : ''}${combo.meta ? 'Meta+' : ''}${combo.alt ? 'Alt+' : ''}${combo.key.toUpperCase()}`);
+                return false;
+            }
+        }
+        
+        // Special case for Alt+F4 and Alt+Tab
+        if (e.altKey) {
+            if (key === 'f4' || keyCode === 115) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                this.handleViolation('Alt+F4 pressed');
+                return false;
+            }
+            if (key === 'tab' || keyCode === 9) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                this.handleViolation('Alt+Tab pressed');
+                return false;
+            }
+        }
+        
+        // Prevent Escape key from exiting full screen
+        if (key === 'escape' || keyCode === 27) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.handleViolation('Escape key pressed');
+            return false;
+        }
+    }
+    
+    handleKeyUp(e) {
+        if (!this.enabled || !examInProgress) return;
+        
+        // Prevent releasing Windows/Meta key
+        const key = e.key.toLowerCase();
+        if (key === 'meta' || key === 'win' || key === 'os') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }
+    
+    handleKeyPress(e) {
+        if (!this.enabled || !examInProgress) return;
+        
+        // Additional layer of prevention
+        const key = e.key.toLowerCase();
+        if (key === 'meta' || key === 'win' || key === 'os') {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }
+    
+    handleViolation(violationType) {
+        if (!examInProgress) return;
+        
+        const currentTime = Date.now();
+        
+        // Prevent counting multiple violations in rapid succession
+        if (currentTime - this.lastViolationTime < 500) {
+            console.log(`Ignoring rapid key violation: ${violationType}`);
+            return;
+        }
+        
+        this.lastViolationTime = currentTime;
+        this.violationCount++;
+        
+        console.log(`🚨 Key Violation #${this.violationCount}: ${violationType}`);
+        
+        // Show warning to student
+        this.showWarning(this.violationCount, violationType);
+        
+        // Integrate with existing tab switch counter (3 violations = submit exam)
+        if (this.violationCount >= 3) {
+            console.log('🚨 3 key violations detected - submitting exam!');
+            
+            // Show final warning
+            this.showViolationOverlay(`
+                🚨 EXAM VIOLATION DETECTED
+                <br><br>
+                ${violationType}
+                <br><br>
+                <strong>3 key violations reached!</strong>
+                <br>
+                Submitting exam in 3 seconds...
+            `, 'red');
+            
+            // Submit exam after delay
+            setTimeout(() => {
+                if (examInProgress) {
+                    submitExam();
+                }
+            }, 3000);
+        }
+    }
+    
+    showWarning(count, violationType) {
+        const messages = [
+            `⚠️ Blocked Key: ${violationType} (1/3)`,
+            `⚠️ Blocked Key: ${violationType} (2/3) - One more violation will submit exam!`,
+            `🚨 3 key violations detected! ${violationType} - Submitting exam...`
+        ];
+        
+        const messageIndex = Math.min(count - 1, 2);
+        showToast(messages[messageIndex], 'error', 5000);
+        
+        // Show big warning overlay for serious violations
+        if (count >= 2) {
+            this.showViolationOverlay(`
+                ⚠️ KEY VIOLATION
+                <br><br>
+                ${violationType}
+                <br><br>
+                <strong>Count: ${count}/3</strong>
+                <br>
+                Using restricted keys or shortcuts is prohibited!
+            `, 'orange');
+        }
+    }
+    
+    showViolationOverlay(message, color) {
+        const existingOverlay = document.getElementById('violationWarningOverlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        const overlay = document.createElement('div');
+        overlay.id = 'violationWarningOverlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: ${color === 'red' ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 165, 0, 0.95)'};
+            color: white;
+            padding: 25px 35px;
+            border-radius: 15px;
+            z-index: 10002;
+            text-align: center;
+            font-weight: bold;
+            font-size: 20px;
+            border: 4px solid white;
+            box-shadow: 0 0 40px ${color === 'red' ? 'red' : 'orange'};
+            animation: pulse 1s infinite;
+            max-width: 80%;
+            min-width: 300px;
+        `;
+        
+        overlay.innerHTML = message;
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => {
+            overlay.style.animation = 'fadeOut 0.5s ease';
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 500);
+        }, 5000);
+    }
+    
+    reset() {
+        this.violationCount = 0;
+        this.lastViolationTime = 0;
+        console.log('🔄 Key violations reset');
+    }
+}
 
 // ===== AUTO-CLICK SYSTEM =====
 function startAutoClick() {
@@ -2460,6 +2794,52 @@ class SystemTrayViolationDetector {
     }
 }
 
+// ===== BROWSER-SPECIFIC KEY BLOCKING WORKAROUNDS =====
+function setupBrowserSpecificBlocking() {
+    // Some browsers require additional measures
+    
+    // Prevent default behavior for all function keys
+    const blockedKeyCodes = [
+        112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, // F1-F12
+        44,  // PrintScreen
+        91, 92,  // Windows keys
+        93,  // Context Menu
+        19,  // Pause/Break
+        145, // Scroll Lock
+        27   // Escape
+    ];
+    
+    // Additional layer for older browsers
+    document.addEventListener('keydown', function(e) {
+        if (!examInProgress) return;
+        
+        // Check key codes
+        if (blockedKeyCodes.includes(e.keyCode)) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.returnValue = false;
+            
+            // Show warning
+            const keyName = getKeyName(e.keyCode);
+            showToast(`❌ ${keyName} is disabled during exam`, 'error', 3000);
+            
+            return false;
+        }
+    }, true);
+    
+    function getKeyName(keyCode) {
+        const keyNames = {
+            112: 'F1', 113: 'F2', 114: 'F3', 115: 'F4',
+            116: 'F5', 117: 'F6', 118: 'F7', 119: 'F8',
+            120: 'F9', 121: 'F10', 122: 'F11', 123: 'F12',
+            44: 'PrintScreen', 91: 'Windows', 92: 'Windows',
+            93: 'Context Menu', 19: 'Pause', 145: 'Scroll Lock',
+            27: 'Escape'
+        };
+        return keyNames[keyCode] || `Key (${keyCode})`;
+    }
+}
+
 // ===== LOAD ANSWER KEY FROM EXTERNAL FILE ONLY =====
 async function loadAnswerKey() {
     try {
@@ -3050,6 +3430,7 @@ function startExamWithRecovery(progressData) {
     // Enable all security systems
     examSecurity.enable();
     systemTrayDetector.enable();
+    keyBlockingSystem.enable();
     
     showToast('✅ Exam resumed from saved progress', 'success', 4000);
     
@@ -3967,6 +4348,7 @@ function startWithSecurity(ok) {
   tabSwitchCount = 0;
   lastTabSwitchTime = 0;
   systemTrayDetector.reset();
+  keyBlockingSystem.reset();
   
   const stuName = document.getElementById('stuName');
   const stuSection = document.getElementById('stuSection');
@@ -4033,6 +4415,7 @@ function startExam(studentKey) {
     
     // Enable all security systems
     systemTrayDetector.enable();
+    keyBlockingSystem.enable();
     
     saveExamProgress();
 }
@@ -4513,8 +4896,11 @@ function submitExam() {
   if (hasSubmitted) return;
   clearInterval(timerInterval);
   
-  // Stop keep-awake system
+  // Stop all systems
   keepAwakeSystem.stop();
+  examSecurity.disable();
+  systemTrayDetector.disable();
+  keyBlockingSystem.disable();
   
   if (autoSaveTimer) {
     clearInterval(autoSaveTimer);
@@ -4523,10 +4909,6 @@ function submitExam() {
   
   hasSubmitted = true;
   examInProgress = false;
-  
-  // Disable all security systems
-  examSecurity.disable();
-  systemTrayDetector.disable();
   
   const subjData = {};
   examData.subjectNames.forEach((s, i) => {
@@ -4571,6 +4953,7 @@ function submitExam() {
   console.log("Subject Data:", subjData);
   console.log("Tab switches:", tabSwitchCount);
   console.log("System tray violations:", systemTrayDetector.violationCount);
+  console.log("Key violations:", keyBlockingSystem.violationCount);
 
   // ===== GOOGLE FORMS SUBMISSION =====
   // Capture all answers data
@@ -4895,6 +5278,7 @@ window.addEventListener('load', function() {
   console.log('🔒 Full-Screen Security Active');
   console.log('📊 Tab Switching Detection: 3 switches total submit exam');
   console.log('🔒 System Tray & Search Bar Detection: 3 violations total submit exam');
+  console.log('🔑 Key Blocking System: F1-F12, Windows/Meta keys, all shortcuts blocked');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
   console.log('📁 EXTERNAL ANSWER KEY: Will load from answer-key.txt');
@@ -4912,8 +5296,12 @@ window.addEventListener('load', function() {
   
   document.getElementById('accessCode').focus();
   
-  // Initialize System Tray Security
+  // Initialize all security systems
   systemTrayDetector = new SystemTrayViolationDetector();
+  keyBlockingSystem = new KeyBlockingSystem();
+  
+  // Setup browser-specific blocking
+  setupBrowserSpecificBlocking();
   
   // Load answer key from external file
   loadAnswerKey().then(success => {
@@ -4931,7 +5319,12 @@ window.addEventListener('load', function() {
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
-console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
+console.log("✅ All security systems integrated:");
+console.log("   • Full-screen enforcement");
+console.log("   • Tab switching detection (3 strikes)");
+console.log("   • System tray/search bar detection");
+console.log("   • Key blocking: F1-F12, Windows/Meta, all shortcuts");
+console.log("   • Power loss recovery with auto-save");
 console.log("🖱️ Auto-click system enabled: Clicks every 30 seconds to prevent screen sleep");
 console.log("🔋 Keep-awake system: Wake Lock, silent video, keyboard activity, safe click zones");
 </script>
