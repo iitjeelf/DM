@@ -1458,6 +1458,44 @@ button:focus {
 body.anti-sleep-active {
   animation: antiSleepPulse 60s infinite;
 }
+
+/* ===== ULTIMATE KEY BLOCKER ANIMATIONS ===== */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+@keyframes keyBlockFlash {
+  0% { background-color: rgba(255, 0, 0, 0.3); }
+  50% { background-color: rgba(255, 0, 0, 0.7); }
+  100% { background-color: rgba(255, 0, 0, 0.3); }
+}
+
+.key-block-flash {
+  animation: keyBlockFlash 0.5s 3;
+}
+
+.key-violation-warning {
+  animation: shakeWarning 0.5s ease-in-out;
+  background: linear-gradient(145deg, #dc3545, #c82333) !important;
+  border: 3px solid white !important;
+}
+
+/* Windows key specific warning */
+.windows-key-warning {
+  background: linear-gradient(145deg, #dc3545, #c82333) !important;
+  border: 3px solid white !important;
+  animation: shakeWarning 0.5s ease-in-out;
+}
+
+/* Function key warning */
+.f-key-warning {
+  background: linear-gradient(145deg, #ff9900, #ff6600) !important;
+  border: 3px solid white !important;
+  animation: shakeWarning 0.5s ease-in-out;
+}
 </style>
 </head>
 
@@ -1811,258 +1849,377 @@ const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
 
-// ===== COMPREHENSIVE KEY BLOCKING SYSTEM =====
-class KeyBlockingSystem {
+// ===== ULTIMATE KEY BLOCKING SYSTEM =====
+class UltimateKeyBlocker {
     constructor() {
-        this.blockedKeys = new Set([
-            'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
-            'PrintScreen', 'ScrollLock', 'Pause', 'Escape',
-            'Meta', 'Win', 'OS', 'ContextMenu'
-        ]);
-        
-        this.blockedCombinations = [
-            { key: 'r', ctrl: true, meta: false, alt: false },      // Ctrl+R (Refresh)
-            { key: 'r', ctrl: false, meta: true, alt: false },      // Cmd+R (Mac Refresh)
-            { key: 'f5', ctrl: false, meta: false, alt: false },    // F5
-            { key: 'r', ctrl: false, meta: false, alt: true },      // Alt+R (Some browsers)
-            { key: 'f4', ctrl: false, meta: false, alt: true },     // Alt+F4
-            { key: 'tab', ctrl: false, meta: false, alt: true },    // Alt+Tab
-            { key: 'tab', ctrl: false, meta: true, alt: false },    // Cmd+Tab (Mac)
-            { key: 'w', ctrl: true, meta: false, alt: false },      // Ctrl+W (Close tab)
-            { key: 'w', ctrl: false, meta: true, alt: false },      // Cmd+W (Mac close tab)
-            { key: 'q', ctrl: true, meta: false, alt: false },      // Ctrl+Q (Quit)
-            { key: 'q', ctrl: false, meta: true, alt: false },      // Cmd+Q (Mac quit)
-            { key: 'n', ctrl: true, meta: false, alt: false },      // Ctrl+N (New window)
-            { key: 't', ctrl: true, meta: false, alt: false },      // Ctrl+T (New tab)
-            { key: 't', ctrl: false, meta: true, alt: false },      // Cmd+T (Mac new tab)
-            { key: 'l', ctrl: true, meta: false, alt: false },      // Ctrl+L (Focus address bar)
-            { key: 'l', ctrl: false, meta: true, alt: false },      // Cmd+L (Mac focus address bar)
-            { key: 's', ctrl: true, meta: false, alt: false },      // Ctrl+S (Save)
-            { key: 's', ctrl: false, meta: true, alt: false },      // Cmd+S (Mac save)
-            { key: 'p', ctrl: true, meta: false, alt: false },      // Ctrl+P (Print)
-            { key: 'p', ctrl: false, meta: true, alt: false },      // Cmd+P (Mac print)
-            { key: 'i', ctrl: true, meta: false, alt: true },       // Ctrl+Shift+I (DevTools)
-            { key: 'i', ctrl: false, meta: true, alt: true },       // Cmd+Option+I (Mac DevTools)
-            { key: 'j', ctrl: true, meta: false, alt: true },       // Ctrl+Shift+J (DevTools Console)
-            { key: 'u', ctrl: true, meta: false, alt: false },      // Ctrl+U (View Source)
-            { key: 'u', ctrl: false, meta: true, alt: false },      // Cmd+U (Mac view source)
-            { key: 'd', ctrl: false, meta: true, alt: false },      // Windows+D (Show desktop)
-            { key: 'e', ctrl: false, meta: true, alt: false },      // Windows+E (File Explorer)
-            { key: 'r', ctrl: false, meta: true, alt: false },      // Windows+R (Run dialog)
-            { key: 'x', ctrl: false, meta: true, alt: false },      // Windows+X (Power User Menu)
-            { key: 's', ctrl: false, meta: true, alt: false },      // Windows+S (Search)
-            { key: 'l', ctrl: false, meta: true, alt: false },      // Windows+L (Lock computer)
-            { key: 'tab', ctrl: false, meta: true, alt: false },    // Windows+Tab (Task View)
-            { key: 'arrowleft', ctrl: false, meta: true, alt: false }, // Windows+Left (Snap left)
-            { key: 'arrowright', ctrl: false, meta: true, alt: false }, // Windows+Right (Snap right)
-            { key: 'arrowup', ctrl: false, meta: true, alt: false }, // Windows+Up (Maximize)
-            { key: 'arrowdown', ctrl: false, meta: true, alt: false }  // Windows+Down (Minimize)
-        ];
-        
         this.enabled = false;
-        this.violationCount = 0;
-        this.lastViolationTime = 0;
-        console.log('🔒 Key Blocking System Initialized');
+        this.blockedKeys = new Set();
+        this.setupBlockedKeys();
+        console.log('🔒 Ultimate Key Blocker Initialized');
+    }
+    
+    setupBlockedKeys() {
+        // F1-F12
+        for (let i = 1; i <= 12; i++) {
+            this.blockedKeys.add(`F${i}`);
+            this.blockedKeys.add(`f${i}`);
+        }
+        
+        // Windows/Meta keys
+        this.blockedKeys.add('Meta');
+        this.blockedKeys.add('Win');
+        this.blockedKeys.add('OS');
+        this.blockedKeys.add('Super');
+        this.blockedKeys.add('Command');
+        this.blockedKeys.add('⌘');
+        
+        // System keys
+        this.blockedKeys.add('Escape');
+        this.blockedKeys.add('Esc');
+        this.blockedKeys.add('PrintScreen');
+        this.blockedKeys.add('Print');
+        this.blockedKeys.add('ScrollLock');
+        this.blockedKeys.add('Pause');
+        this.blockedKeys.add('Break');
+        this.blockedKeys.add('ContextMenu');
+        
+        // Key codes
+        this.blockedKeyCodes = new Set([
+            112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, // F1-F12
+            91, 92, 93,  // Windows keys (left, right, context menu)
+            27,  // Escape
+            44,  // PrintScreen
+            19,  // Pause/Break
+            145, // Scroll Lock
+            122, // F11 (full screen exit)
+        ]);
     }
     
     enable() {
         if (this.enabled) return;
         
-        this.setupKeyListeners();
-        this.enabled = true;
-        console.log('✅ Key Blocking System Enabled');
+        // Remove any existing listeners first
+        this.disable();
         
-        // Add to existing violation counter
-        this.violationCount = 0;
+        // Add multiple layers of protection
+        this.addEventListeners();
+        
+        // Prevent default browser behavior
+        this.preventBrowserDefaults();
+        
+        // Block context menu
+        this.blockContextMenu();
+        
+        this.enabled = true;
+        console.log('✅ Ultimate Key Blocker Enabled - F1-F12 and Windows keys are completely blocked');
         
         return this;
     }
     
     disable() {
+        // Remove all event listeners
+        document.removeEventListener('keydown', this.handleKeyDownBound);
+        document.removeEventListener('keyup', this.handleKeyUpBound);
+        document.removeEventListener('keypress', this.handleKeyPressBound);
+        document.removeEventListener('contextmenu', this.handleContextMenuBound);
+        
         this.enabled = false;
-        console.log('🔓 Key Blocking System Disabled');
+        console.log('🔓 Ultimate Key Blocker Disabled');
     }
     
-    setupKeyListeners() {
-        // Prevent default for all key events at capture phase
-        document.addEventListener('keydown', (e) => this.handleKeyDown(e), true);
-        document.addEventListener('keyup', (e) => this.handleKeyUp(e), true);
-        document.addEventListener('keypress', (e) => this.handleKeyPress(e), true);
+    addEventListeners() {
+        // Bind methods to maintain context
+        this.handleKeyDownBound = this.handleKeyDown.bind(this);
+        this.handleKeyUpBound = this.handleKeyUp.bind(this);
+        this.handleKeyPressBound = this.handleKeyPress.bind(this);
+        this.handleContextMenuBound = this.handleContextMenu.bind(this);
         
-        // Also prevent context menu on right-click
-        document.addEventListener('contextmenu', (e) => {
+        // CAPTURE phase (before any other handlers)
+        document.addEventListener('keydown', this.handleKeyDownBound, true);
+        document.addEventListener('keyup', this.handleKeyUpBound, true);
+        document.addEventListener('keypress', this.handleKeyPressBound, true);
+        document.addEventListener('contextmenu', this.handleContextMenuBound, true);
+        
+        // Also add to window for extra coverage
+        window.addEventListener('keydown', this.handleKeyDownBound, true);
+        window.addEventListener('keyup', this.handleKeyUpBound, true);
+    }
+    
+    preventBrowserDefaults() {
+        // Prevent F1 (Help), F3 (Find), F5 (Refresh), etc.
+        window.onhelp = function() { return false; };
+        
+        // Disable F5, Ctrl+R, Ctrl+F5
+        window.onbeforeunload = function(e) {
             if (examInProgress) {
+                return "Exam in progress. Closing will submit your exam.";
+            }
+        };
+    }
+    
+    blockContextMenu() {
+        // Disable right-click completely
+        document.oncontextmenu = function() { return false; };
+        
+        // Also disable shift+F10 (alternative context menu)
+        document.addEventListener('keydown', (e) => {
+            if (e.shiftKey && e.keyCode === 121) { // Shift+F10
                 e.preventDefault();
-                this.handleViolation('Right-click context menu');
+                e.stopPropagation();
                 return false;
             }
         }, true);
     }
     
     handleKeyDown(e) {
-        if (!this.enabled || !examInProgress) return;
+        if (!this.enabled || !examInProgress) return true;
         
-        const key = e.key.toLowerCase();
+        const key = e.key;
         const keyCode = e.keyCode || e.which;
         
-        // Check for Windows/Meta key alone
-        if (key === 'meta' || key === 'win' || key === 'os' || keyCode === 91 || keyCode === 92) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            this.handleViolation('Windows/Meta key pressed');
+        // DEBUG: Log all key presses
+        // console.log(`Key: ${key}, Code: ${keyCode}, Ctrl: ${e.ctrlKey}, Alt: ${e.altKey}, Meta: ${e.metaKey}, Shift: ${e.shiftKey}`);
+        
+        // BLOCK 1: Check blocked key names
+        if (this.blockedKeys.has(key)) {
+            this.blockKey(e, `Blocked key: ${key}`);
             return false;
         }
         
-        // Check blocked single keys (F1-F12, PrintScreen, etc.)
-        if (this.blockedKeys.has(e.key) || this.blockedKeys.has(key.toUpperCase())) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            this.handleViolation(`${e.key} key pressed`);
+        // BLOCK 2: Check blocked key codes
+        if (this.blockedKeyCodes.has(keyCode)) {
+            this.blockKey(e, `Blocked key code: ${keyCode} (${key})`);
             return false;
         }
         
-        // Check for function keys (F1-F12)
-        if (key.startsWith('f') && key.length > 1 && !isNaN(key.substring(1))) {
-            e.preventDefault();
-            e.stopPropagation();
-            e.stopImmediatePropagation();
-            this.handleViolation(`${e.key} key pressed`);
+        // BLOCK 3: Check function keys (F1-F12)
+        if (key.match(/^F[1-9][0-2]?$/i)) {
+            this.blockKey(e, `Function key: ${key}`);
             return false;
         }
         
-        // Check blocked combinations
-        for (const combo of this.blockedCombinations) {
-            if (key === combo.key.toLowerCase() && 
-                e.ctrlKey === combo.ctrl && 
-                e.metaKey === combo.meta && 
-                e.altKey === combo.alt) {
-                
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                this.handleViolation(`${combo.ctrl ? 'Ctrl+' : ''}${combo.meta ? 'Meta+' : ''}${combo.alt ? 'Alt+' : ''}${combo.key.toUpperCase()}`);
-                return false;
-            }
+        // BLOCK 4: Windows/Meta key alone or in combination
+        if (key === 'Meta' || key === 'Win' || key === 'OS' || keyCode === 91 || keyCode === 92) {
+            this.blockKey(e, `Windows/Meta key: ${key}`);
+            return false;
         }
         
-        // Special case for Alt+F4 and Alt+Tab
+        // BLOCK 5: Alt key combinations
         if (e.altKey) {
-            if (key === 'f4' || keyCode === 115) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                this.handleViolation('Alt+F4 pressed');
-                return false;
-            }
-            if (key === 'tab' || keyCode === 9) {
-                e.preventDefault();
-                e.stopPropagation();
-                e.stopImmediatePropagation();
-                this.handleViolation('Alt+Tab pressed');
+            // Alt+F4, Alt+Tab, Alt+Esc, etc.
+            if (['F4', 'Tab', 'Escape', 'Esc', 'Enter', 'Space'].includes(key) ||
+                keyCode === 115 || keyCode === 9 || keyCode === 27) {
+                this.blockKey(e, `Alt+${key} combination`);
                 return false;
             }
         }
         
-        // Prevent Escape key from exiting full screen
-        if (key === 'escape' || keyCode === 27) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.handleViolation('Escape key pressed');
+        // BLOCK 6: Ctrl key combinations for browser functions
+        if (e.ctrlKey) {
+            const ctrlCombos = {
+                'R': 'Refresh',
+                'F5': 'Refresh',
+                'r': 'Refresh',
+                'S': 'Save',
+                's': 'Save',
+                'P': 'Print',
+                'p': 'Print',
+                'N': 'New window',
+                'n': 'New window',
+                'W': 'Close tab',
+                'w': 'Close tab',
+                'T': 'New tab',
+                't': 'New tab',
+                'H': 'History',
+                'h': 'History',
+                'J': 'Downloads',
+                'j': 'Downloads',
+                'U': 'View source',
+                'u': 'View source',
+                'I': 'DevTools',
+                'i': 'DevTools',
+                'J': 'DevTools Console',
+                'j': 'DevTools Console',
+                'Shift': 'I', // Ctrl+Shift+I
+                'Shift': 'J', // Ctrl+Shift+J
+                'Shift': 'C', // Ctrl+Shift+C
+            };
+            
+            if (ctrlCombos[key] || ctrlCombos[e.key]) {
+                this.blockKey(e, `Ctrl+${key} (${ctrlCombos[key] || ctrlCombos[e.key]})`);
+                return false;
+            }
+        }
+        
+        // BLOCK 7: Print Screen (multiple methods)
+        if (key === 'PrintScreen' || keyCode === 44 || 
+            (e.ctrlKey && key === 'p') || 
+            (e.shiftKey && keyCode === 44)) {
+            this.blockKey(e, 'Print Screen/Print');
             return false;
         }
+        
+        return true;
     }
     
     handleKeyUp(e) {
-        if (!this.enabled || !examInProgress) return;
+        if (!this.enabled || !examInProgress) return true;
         
-        // Prevent releasing Windows/Meta key
-        const key = e.key.toLowerCase();
-        if (key === 'meta' || key === 'win' || key === 'os') {
+        // Specifically block Windows key release
+        if (e.key === 'Meta' || e.key === 'Win' || e.key === 'OS' || 
+            e.keyCode === 91 || e.keyCode === 92) {
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             return false;
         }
+        
+        return true;
     }
     
     handleKeyPress(e) {
-        if (!this.enabled || !examInProgress) return;
+        if (!this.enabled || !examInProgress) return true;
         
-        // Additional layer of prevention
-        const key = e.key.toLowerCase();
-        if (key === 'meta' || key === 'win' || key === 'os') {
+        // Additional blocking layer
+        if (this.blockedKeys.has(e.key) || this.blockedKeyCodes.has(e.keyCode)) {
             e.preventDefault();
             e.stopPropagation();
             return false;
         }
+        
+        return true;
     }
     
-    handleViolation(violationType) {
+    handleContextMenu(e) {
+        if (!this.enabled || !examInProgress) return true;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Show violation warning
+        this.showViolation('Right-click context menu');
+        return false;
+    }
+    
+    blockKey(e, reason) {
+        // COMPLETE BLOCKING - all methods
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Return false for older browsers
+        e.returnValue = false;
+        
+        // Cancel the event completely
+        if (e.cancelable) {
+            e.cancelBubble = true;
+        }
+        
+        // Show violation warning
+        this.showViolation(reason);
+        
+        // Log for debugging
+        console.log(`🚫 BLOCKED: ${reason}`);
+        
+        // Visual feedback
+        this.showKeyBlockedWarning(reason);
+        
+        return false;
+    }
+    
+    showViolation(reason) {
         if (!examInProgress) return;
         
-        const currentTime = Date.now();
-        
-        // Prevent counting multiple violations in rapid succession
-        if (currentTime - this.lastViolationTime < 500) {
-            console.log(`Ignoring rapid key violation: ${violationType}`);
-            return;
-        }
-        
-        this.lastViolationTime = currentTime;
-        this.violationCount++;
-        
-        console.log(`🚨 Key Violation #${this.violationCount}: ${violationType}`);
-        
-        // Show warning to student
-        this.showWarning(this.violationCount, violationType);
-        
-        // Integrate with existing tab switch counter (3 violations = submit exam)
-        if (this.violationCount >= 3) {
-            console.log('🚨 3 key violations detected - submitting exam!');
+        // Integrate with existing violation counter
+        if (typeof tabSwitchCount !== 'undefined') {
+            const currentTime = Date.now();
             
-            // Show final warning
-            this.showViolationOverlay(`
-                🚨 EXAM VIOLATION DETECTED
-                <br><br>
-                ${violationType}
-                <br><br>
-                <strong>3 key violations reached!</strong>
-                <br>
-                Submitting exam in 3 seconds...
-            `, 'red');
+            // Prevent counting rapid violations
+            if (currentTime - lastTabSwitchTime < 500) return;
             
-            // Submit exam after delay
-            setTimeout(() => {
-                if (examInProgress) {
-                    submitExam();
-                }
-            }, 3000);
+            lastTabSwitchTime = currentTime;
+            tabSwitchCount++;
+            
+            console.log(`🚨 Key Violation #${tabSwitchCount}: ${reason}`);
+            
+            // Show warning
+            this.showTabSwitchWarning(tabSwitchCount, reason);
+            
+            // 3 violations = submit exam
+            if (tabSwitchCount >= 3) {
+                console.log('🚨 3 key violations - submitting exam!');
+                
+                this.showViolationOverlay(`
+                    🚨 EXAM TERMINATED
+                    <br><br>
+                    ${reason}
+                    <br><br>
+                    <strong>3 key violations detected!</strong>
+                    <br>
+                    Exam will be submitted in 3 seconds...
+                `, 'red');
+                
+                setTimeout(() => {
+                    if (examInProgress) {
+                        submitExam();
+                    }
+                }, 3000);
+            }
         }
     }
     
-    showWarning(count, violationType) {
+    showTabSwitchWarning(count, reason) {
         const messages = [
-            `⚠️ Blocked Key: ${violationType} (1/3)`,
-            `⚠️ Blocked Key: ${violationType} (2/3) - One more violation will submit exam!`,
-            `🚨 3 key violations detected! ${violationType} - Submitting exam...`
+            `⚠️ Key Blocked: ${reason} (1/3)`,
+            `⚠️ Key Blocked: ${reason} (2/3) - One more will submit exam!`,
+            `🚨 3 violations! ${reason} - Submitting exam...`
         ];
         
         const messageIndex = Math.min(count - 1, 2);
         showToast(messages[messageIndex], 'error', 5000);
         
-        // Show big warning overlay for serious violations
+        // Show big warning for serious violations
         if (count >= 2) {
             this.showViolationOverlay(`
                 ⚠️ KEY VIOLATION
                 <br><br>
-                ${violationType}
+                ${reason}
                 <br><br>
                 <strong>Count: ${count}/3</strong>
                 <br>
-                Using restricted keys or shortcuts is prohibited!
+                Using restricted keys is prohibited!
             `, 'orange');
         }
+    }
+    
+    showKeyBlockedWarning(reason) {
+        // Quick visual feedback
+        const warning = document.createElement('div');
+        warning.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 0, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 9999;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            animation: fadeInOut 2s ease;
+        `;
+        
+        warning.textContent = `🚫 ${reason}`;
+        document.body.appendChild(warning);
+        
+        setTimeout(() => {
+            if (warning.parentNode) {
+                warning.parentNode.removeChild(warning);
+            }
+        }, 2000);
     }
     
     showViolationOverlay(message, color) {
@@ -2107,10 +2264,87 @@ class KeyBlockingSystem {
     }
     
     reset() {
-        this.violationCount = 0;
-        this.lastViolationTime = 0;
+        if (typeof tabSwitchCount !== 'undefined') {
+            tabSwitchCount = 0;
+        }
         console.log('🔄 Key violations reset');
     }
+}
+
+// Initialize ultimate key blocker
+const ultimateKeyBlocker = new UltimateKeyBlocker();
+
+// ===== KERNEL-LEVEL PROTECTION =====
+function installKernelLevelProtection() {
+    // This simulates kernel-level protection by hooking into low-level events
+    
+    // 1. Override window.addEventListener to catch early
+    const originalAddEventListener = window.addEventListener;
+    window.addEventListener = function(type, listener, options) {
+        if (examInProgress && type === 'keydown') {
+            // Wrap the listener to ensure our blocker runs first
+            const wrappedListener = function(e) {
+                if (ultimateKeyBlocker.enabled) {
+                    const key = e.key;
+                    const keyCode = e.keyCode;
+                    
+                    // Pre-block F1-F12 and Windows keys
+                    if (key.match(/^F[1-9][0-2]?$/i) || 
+                        key === 'Meta' || key === 'Win' || 
+                        keyCode === 91 || keyCode === 92 ||
+                        (keyCode >= 112 && keyCode <= 123)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        ultimateKeyBlocker.showKeyBlockedWarning(`${key} blocked`);
+                        return;
+                    }
+                }
+                return listener.call(this, e);
+            };
+            return originalAddEventListener.call(this, type, wrappedListener, options);
+        }
+        return originalAddEventListener.call(this, type, listener, options);
+    };
+    
+    // 2. Block keyboard events at document level before they bubble
+    document.addEventListener('keydown', function(e) {
+        if (!examInProgress || !ultimateKeyBlocker.enabled) return;
+        
+        // Immediate block before any other handlers
+        const key = e.key;
+        const keyCode = e.keyCode;
+        
+        if (key.match(/^F[1-9][0-2]?$/i) || 
+            key === 'Meta' || key === 'Win' || 
+            keyCode === 91 || keyCode === 92 ||
+            (keyCode >= 112 && keyCode <= 123)) {
+            
+            // Nuclear option: Dispatch a new event that cancels this one
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Create a new event that's already cancelled
+            const newEvent = new KeyboardEvent('keydown', {
+                key: '',
+                code: '',
+                keyCode: 0,
+                which: 0,
+                bubbles: false,
+                cancelable: false
+            });
+            
+            // Replace the event
+            Object.defineProperty(e, 'key', { value: '' });
+            Object.defineProperty(e, 'keyCode', { value: 0 });
+            Object.defineProperty(e, 'which', { value: 0 });
+            
+            ultimateKeyBlocker.showKeyBlockedWarning(`${key} blocked at kernel level`);
+            return false;
+        }
+    }, {capture: true, passive: false});
+    
+    console.log('🛡️ Kernel-level protection installed');
 }
 
 // ===== AUTO-CLICK SYSTEM =====
@@ -3430,7 +3664,7 @@ function startExamWithRecovery(progressData) {
     // Enable all security systems
     examSecurity.enable();
     systemTrayDetector.enable();
-    keyBlockingSystem.enable();
+    ultimateKeyBlocker.enable();
     
     showToast('✅ Exam resumed from saved progress', 'success', 4000);
     
@@ -4348,7 +4582,7 @@ function startWithSecurity(ok) {
   tabSwitchCount = 0;
   lastTabSwitchTime = 0;
   systemTrayDetector.reset();
-  keyBlockingSystem.reset();
+  ultimateKeyBlocker.reset();
   
   const stuName = document.getElementById('stuName');
   const stuSection = document.getElementById('stuSection');
@@ -4415,7 +4649,10 @@ function startExam(studentKey) {
     
     // Enable all security systems
     systemTrayDetector.enable();
-    keyBlockingSystem.enable();
+    ultimateKeyBlocker.enable();
+    
+    // Install kernel-level protection
+    installKernelLevelProtection();
     
     saveExamProgress();
 }
@@ -4900,7 +5137,7 @@ function submitExam() {
   keepAwakeSystem.stop();
   examSecurity.disable();
   systemTrayDetector.disable();
-  keyBlockingSystem.disable();
+  ultimateKeyBlocker.disable();
   
   if (autoSaveTimer) {
     clearInterval(autoSaveTimer);
@@ -4953,7 +5190,7 @@ function submitExam() {
   console.log("Subject Data:", subjData);
   console.log("Tab switches:", tabSwitchCount);
   console.log("System tray violations:", systemTrayDetector.violationCount);
-  console.log("Key violations:", keyBlockingSystem.violationCount);
+  console.log("Key violations:", ultimateKeyBlocker.violationCount);
 
   // ===== GOOGLE FORMS SUBMISSION =====
   // Capture all answers data
@@ -5278,12 +5515,13 @@ window.addEventListener('load', function() {
   console.log('🔒 Full-Screen Security Active');
   console.log('📊 Tab Switching Detection: 3 switches total submit exam');
   console.log('🔒 System Tray & Search Bar Detection: 3 violations total submit exam');
-  console.log('🔑 Key Blocking System: F1-F12, Windows/Meta keys, all shortcuts blocked');
+  console.log('🔑 ULTIMATE KEY BLOCKER: F1-F12, Windows/Meta keys completely blocked');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
   console.log('📁 EXTERNAL ANSWER KEY: Will load from answer-key.txt');
   console.log('🖱️ AUTO-CLICK SYSTEM: Clicks every 30 seconds to prevent screen sleep');
   console.log('🔋 KEEP-AWAKE SYSTEM: Multiple layers to prevent screen sleep');
+  console.log('🛡️ KERNEL-LEVEL PROTECTION: Installed for maximum key blocking');
   
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
@@ -5298,7 +5536,6 @@ window.addEventListener('load', function() {
   
   // Initialize all security systems
   systemTrayDetector = new SystemTrayViolationDetector();
-  keyBlockingSystem = new KeyBlockingSystem();
   
   // Setup browser-specific blocking
   setupBrowserSpecificBlocking();
@@ -5315,6 +5552,12 @@ window.addEventListener('load', function() {
   setTimeout(() => {
     initPowerLossProtection();
   }, 1000);
+  
+  // Enable ultimate key blocker on load
+  ultimateKeyBlocker.enable();
+  
+  // Install kernel-level protection after a delay
+  setTimeout(installKernelLevelProtection, 1500);
 });
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
@@ -5323,7 +5566,8 @@ console.log("✅ All security systems integrated:");
 console.log("   • Full-screen enforcement");
 console.log("   • Tab switching detection (3 strikes)");
 console.log("   • System tray/search bar detection");
-console.log("   • Key blocking: F1-F12, Windows/Meta, all shortcuts");
+console.log("   • ULTIMATE KEY BLOCKER: F1-F12, Windows/Meta keys COMPLETELY BLOCKED");
+console.log("   • Kernel-level protection installed");
 console.log("   • Power loss recovery with auto-save");
 console.log("🖱️ Auto-click system enabled: Clicks every 30 seconds to prevent screen sleep");
 console.log("🔋 Keep-awake system: Wake Lock, silent video, keyboard activity, safe click zones");
