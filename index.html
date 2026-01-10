@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>LFJC Online Exam</title>
 <style>
-/* ALL YOUR EXISTING CSS STAYS EXACTLY THE SAME - NOT REMOVING ANYTHING */
+/* ALL YOUR EXISTING CSS STAYS EXACTLY THE SAME */
 /* ===== BASE STYLES ===== */
 :root {
   --primary-color: #4B0082;
@@ -112,59 +112,241 @@ footer {
   bottom: 0;
 }
 
-/* ===== STUDENT ENTRY SECTION ===== */
-#studentEntry {
+/* ===== FULL SCREEN ACCESS PAGE STYLES ===== */
+#accessDenied {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(145deg, var(--secondary-color), var(--light-purple));
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 140px);
-  padding: 16px;
+  color: black;
   text-align: center;
+  padding: 20px;
+  overflow-y: auto;
 }
 
+#accessDenied h1 {
+  font-size: 3.5em;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  color: #4B0082;
+  animation: titlePulse 2s infinite alternate;
+}
+
+@keyframes titlePulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+#accessDenied .exam-details {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 25px;
+  border-radius: 15px;
+  margin: 20px 0;
+  max-width: 800px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+}
+
+#accessDenied .subject-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+#accessDenied .subject-card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+#accessDenied .subject-card h3 {
+  color: #4B0082;
+  margin-top: 0;
+  border-bottom: 2px solid #4B0082;
+  padding-bottom: 10px;
+}
+
+#accessDenied .scoring-system {
+  background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+  padding: 25px;
+  border-radius: 15px;
+  margin: 25px 0;
+  border: 3px solid #ffc107;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.access-code-input {
+  padding: 20px 25px;
+  border: none;
+  border-radius: 12px;
+  font-size: 24px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  margin: 30px 0;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  border: 3px solid #4B0082;
+  transition: all 0.3s ease;
+}
+
+.access-code-input:focus {
+  outline: none;
+  transform: scale(1.05);
+  box-shadow: 0 12px 35px rgba(75, 0, 130, 0.3);
+}
+
+.verify-btn {
+  background: linear-gradient(145deg, #4B0082, #6a11cb);
+  color: white;
+  border: none;
+  padding: 18px 45px;
+  font-size: 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(75, 0, 130, 0.3);
+  letter-spacing: 1px;
+  margin: 15px 0;
+}
+
+.verify-btn:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(75, 0, 130, 0.4);
+}
+
+.verify-btn:active {
+  transform: translateY(-2px);
+}
+
+.access-error {
+  color: #ff3333;
+  margin-top: 15px;
+  font-weight: 600;
+  background: rgba(255, 51, 51, 0.1);
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: 2px solid #ff3333;
+  display: none;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* ===== FULL SCREEN STUDENT ENTRY SECTION ===== */
+#studentEntry {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+  background: linear-gradient(145deg, #f0f0ff, #e6e6fa);
+  overflow-y: auto;
+  z-index: 9999;
+}
+
+#studentEntry .entry-container {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+  max-width: 800px;
+  width: 90%;
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+#studentEntry .warning-banner {
+  background: linear-gradient(145deg, #ff9900, #ff8c00);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  font-weight: bold;
+  font-size: 18px;
+  box-shadow: 0 5px 15px rgba(255, 153, 0, 0.3);
+  animation: pulseWarning 2s infinite;
+}
+
+@keyframes pulseWarning {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* ===== FORM GROUP STYLES ===== */
 .form-group {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 60px;
+  justify-content: space-between;
+  margin-bottom: 40px;
   width: 100%;
-  max-width: 500px;
+  padding: 0 10px;
 }
 
 .form-group label {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin-right: 10px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-right: 20px;
   color: var(--primary-color);
-  width: 180px;
+  width: 250px;
   text-align: right;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
 input[type="text"], input[type="number"] {
-  padding: 12px 14px;
-  font-size: 1.1rem;
-  border-radius: 10px;
-  border: 1.5px solid var(--primary-color);
+  padding: 18px 22px;
+  font-size: 1.3rem;
+  border-radius: 12px;
+  border: 3px solid var(--primary-color);
   outline: none;
-  min-width: 250px;
+  min-width: 350px;
   transition: var(--transition);
+  background: #f8f9ff;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
 }
 
 input[type="text"]:focus, input[type="number"]:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(75, 0, 130, 0.2);
+  box-shadow: 0 0 0 4px rgba(75, 0, 130, 0.3);
+  background: white;
+  transform: translateY(-2px);
 }
 
 input.error {
   animation: glowRed 0.5s alternate infinite;
   border-color: var(--danger);
+  background: #fff5f5;
 }
 
 @keyframes glowRed {
-  0% { box-shadow: 0 0 5px var(--danger); }
-  100% { box-shadow: 0 0 15px var(--danger); }
+  0% { box-shadow: 0 0 8px var(--danger), inset 0 2px 5px rgba(0,0,0,0.1); }
+  100% { box-shadow: 0 0 20px var(--danger), inset 0 2px 5px rgba(0,0,0,0.1); }
 }
 
 /* ===== BUTTON STYLES ===== */
@@ -1318,6 +1500,25 @@ button:focus {
 
 /* ===== RESPONSIVE STYLES ===== */
 @media (max-width: 600px) {
+  #accessDenied h1 {
+    font-size: 2em;
+  }
+  
+  #accessDenied .exam-details {
+    padding: 15px;
+  }
+  
+  .access-code-input {
+    padding: 15px;
+    font-size: 18px;
+    width: 90%;
+  }
+  
+  .verify-btn {
+    padding: 12px 25px;
+    font-size: 18px;
+  }
+  
   #accessDeniedBox h1 {
     font-size: 28px;
   }
@@ -1335,6 +1536,13 @@ button:focus {
     text-align: left;
     width: auto;
     margin-bottom: 5px;
+    font-size: 1.1rem;
+  }
+  
+  input[type="text"], input[type="number"] {
+    min-width: 100%;
+    font-size: 1.1rem;
+    padding: 15px;
   }
   
   #examHeader {
@@ -1395,6 +1603,10 @@ button:focus {
 @media (min-width: 601px) and (max-width: 900px) {
   #paletteContainer {
     grid-template-columns: repeat(10, 1fr) !important;
+  }
+  
+  #accessDenied h1 {
+    font-size: 2.5em;
   }
 }
 
@@ -1461,67 +1673,105 @@ body.anti-sleep-active {
 </div>
 
 <!-- Access Denied Screen - ALWAYS SHOWS FIRST -->
-<div id="accessDenied" class="access-denied">
+<div id="accessDenied">
     <h1>LFJC ONLINE EXAMINATION</h1>
-    <p style="font-size: 1.2em; margin: 10px 0;">TOTAL 75 QUESTIONS</p>
-    <p style="margin: 5px 0;">• Maths: 20 (MCQ), 5 (Numerical Input)</p>
-    <p style="margin: 5px 0;">• Physics: 20 (MCQ), 5(Numerical Input)</p>
-    <p style="margin: 5px 0;">• Chemistry: 20 (MCQ), 5 (Numerical Input)</p>
-    <p style="margin: 10px 0; font-weight: bold;">CORRECT ANSWER + 4 MARKS</p>
-    <p style="margin: 5px 0; font-weight: bold;">WRONG ANSWER -1 MARK</p>
-    <p style="margin: 15px 0; max-width: 600px; line-height: 1.5;">
-       
-    <input type="password" id="accessCode" class="access-code-input" placeholder="Enter Access Code">
-    <button id="verifyAccess" class="verify-btn">VERIFY ACCESS</button>
+    
+    <div class="exam-details">
+        <p style="font-size: 1.3em; margin: 10px 0; font-weight: bold; color: #4B0082;">TOTAL 75 QUESTIONS</p>
+        
+        <div class="subject-list">
+            <div class="subject-card">
+                <h3>📚 Physics</h3>
+                <p>• MCQ: 20 Questions</p>
+                <p>• Numerical: 5 Questions</p>
+                <p>• Total: 25 Questions</p>
+            </div>
+            <div class="subject-card">
+                <h3>🧪 Chemistry</h3>
+                <p>• MCQ: 20 Questions</p>
+                <p>• Numerical: 5 Questions</p>
+                <p>• Total: 25 Questions</p>
+            </div>
+            <div class="subject-card">
+                <h3>🧮 Maths</h3>
+                <p>• MCQ: 20 Questions</p>
+                <p>• Numerical: 5 Questions</p>
+                <p>• Total: 25 Questions</p>
+            </div>
+        </div>
+        
+        <div class="scoring-system">
+            <p>🎯 CORRECT ANSWER: +4 MARKS</p>
+            <p>❌ WRONG ANSWER: -1 MARK</p>
+            <p>⏱️ TIME LIMIT: 3 HOURS (180 Minutes)</p>
+        </div>
+        
+        <p style="margin: 15px 0; font-weight: bold; color: #4B0082;">
+            📢 IMPORTANT: Do not refresh or close the browser during exam. Full-screen mode is mandatory.
+        </p>
+    </div>
+    
+    <input type="password" id="accessCode" class="access-code-input" placeholder="ENTER ACCESS CODE" autocomplete="off">
+    <br>
+    <button id="verifyAccess" class="verify-btn">✅ VERIFY & ENTER EXAM</button>
     <div id="accessError" class="access-error">❌ Invalid access code. Please try again.</div>
 </div>
 
 <header>LFJC ONLINE EXAMINATION</header>
 
-<div id="studentEntry" style="display:none;">
-  <div class="warning-banner" id="examWarning" style="display:none;">
-    <p>⚠️ WARNING: Exam in progress. Do not refresh or close this window!</p>
-  </div>
-  
-  <div class="form-group"><label>NAME</label><input type="text" id="stuName" placeholder="Only letters & spaces" autocomplete="off"></div>
-  <div class="form-group"><label>SECTION</label><input type="text" id="stuSection" placeholder="Letters & digits" autocomplete="off"></div>
-  <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
-  <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
-
-  <!-- RESUME EXAM SECTION -->
-  <div id="resumeExamSection">
-    <h3>🔄 Exam In Progress Found</h3>
-    <div class="resume-student-info">
-      <p><strong>Student:</strong> <span id="resumeStudentName">Loading...</span></p>
-      <p><strong>Section:</strong> <span id="resumeSection">Loading...</span></p>
-      <p><strong>Progress:</strong> <span id="resumeProgress">Loading...</span></p>
-      <p><strong>Time Left:</strong> <span id="resumeTimeLeft">Loading...</span></p>
+<div id="studentEntry">
+  <div class="entry-container">
+    <div class="warning-banner" id="examWarning">
+      <p>⚠️ WARNING: Exam in progress. Do not refresh or close this window!</p>
     </div>
-    <p style="margin-bottom: 15px;">You have an exam in progress from a previous session.</p>
-    <div class="resume-options">
-      <button id="resumeExamBtn" class="resume-btn">Continue Exam</button>
-      <button id="startNewBtn" class="resume-btn">Start New Exam</button>
+    
+    <h2 style="color: #4B0082; margin-bottom: 30px; text-align: center;">📝 STUDENT REGISTRATION</h2>
+    
+    <div class="form-group"><label>STUDENT NAME</label><input type="text" id="stuName" placeholder="Only letters & spaces" autocomplete="off"></div>
+    <div class="form-group"><label>SECTION</label><input type="text" id="stuSection" placeholder="Letters & digits" autocomplete="off"></div>
+    <div class="form-group"><label>ROLL NUMBER</label><input type="text" id="stuRoll" placeholder="Digits only" autocomplete="off"></div>
+    <div class="form-group"><label>ADMISSION NUMBER</label><input type="text" id="stuAdm" placeholder="Digits only" autocomplete="off"></div>
+
+    <!-- REMOVED: Form Assignment Display -->
+    
+    <!-- RESUME EXAM SECTION -->
+    <div id="resumeExamSection">
+      <h3>🔄 Exam In Progress Found</h3>
+      <div class="resume-student-info">
+        <p><strong>Student:</strong> <span id="resumeStudentName">Loading...</span></p>
+        <p><strong>Section:</strong> <span id="resumeSection">Loading...</span></p>
+        <p><strong>Progress:</strong> <span id="resumeProgress">Loading...</span></p>
+        <p><strong>Time Left:</strong> <span id="resumeTimeLeft">Loading...</span></p>
+      </div>
+      <p style="margin-bottom: 15px;">You have an exam in progress from a previous session.</p>
+      <div class="resume-options">
+        <button id="resumeExamBtn" class="resume-btn">Continue Exam</button>
+        <button id="startNewBtn" class="resume-btn">Start New Exam</button>
+      </div>
     </div>
-  </div>
 
-  <!-- RESUBMISSION SECTION -->
-  <div id="resubmissionSection">
-    <h3>🔄 Re-submission Required</h3>
-    <p>You have already submitted within the last 24 hours.</p>
-    <p>To submit again, please enter the re-submission password:</p>
-    <input type="password" id="resubmissionPassword" placeholder="Enter re-submission password">
-    <div>
-      <button id="verifyResubmission" class="resubmit-btn">Verify & Re-submit</button>
-      <button id="cancelResubmission" class="resubmit-btn">Cancel</button>
+    <!-- RESUBMISSION SECTION -->
+    <div id="resubmissionSection">
+      <h3>🔄 Re-submission Required</h3>
+      <p>You have already submitted within the last 24 hours.</p>
+      <p>To submit again, please enter the re-submission password:</p>
+      <input type="password" id="resubmissionPassword" placeholder="Enter re-submission password">
+      <div>
+        <button id="verifyResubmission" class="resubmit-btn">Verify & Re-submit</button>
+        <button id="cancelResubmission" class="resubmit-btn">Cancel</button>
+      </div>
     </div>
+
+    <!-- Google Forms Submission Status -->
+    <div id="googleFormsStatus" style="display:none;"></div>
+
+    <div class="form-group" style="justify-content: center; margin-top: 40px;">
+      <button id="stuStartBtn" style="display:none; padding: 18px 45px; font-size: 22px; font-weight: bold;">START EXAM</button>
+    </div>
+    
+    <p id="studentMsg"></p>
+    <div id="errorMessages"></div>
   </div>
-
-  <!-- Google Forms Submission Status -->
-  <div id="googleFormsStatus" style="display:none;"></div>
-
-  <div class="form-group"><button id="stuStartBtn" style="display:none;">Start Exam</button></div>
-  <p id="studentMsg"></p>
-  <div id="errorMessages"></div>
 </div>
 
 <div id="examArea" style="display:none;">
@@ -1553,6 +1803,7 @@ body.anti-sleep-active {
       <b>Section:</b> <span id="summarySection"></span> | 
       <b>Roll:</b> <span id="summaryRoll"></span> | 
       <b>Admission No:</b> <span id="summaryAdm"></span>
+      <!-- REMOVED: | <b>Form:</b> <span id="summaryForm"></span> -->
     </div>
   </div>
   
@@ -1582,6 +1833,7 @@ body.anti-sleep-active {
       <b>Section:</b> <span id="reviewSection"></span> | 
       <b>Roll:</b> <span id="reviewRoll"></span> | 
       <b>Admission No:</b> <span id="reviewAdm"></span>
+      <!-- REMOVED: | <b>Form:</b> <span id="reviewForm"></span> -->
     </div>
   </div>
   
@@ -1641,301 +1893,6 @@ body.anti-sleep-active {
 <div id="autoSaveIndicator">Auto-saved ✓</div>
 
 <script>
-// ===== SYSTEM KEY BLOCKER WITH AUTO-CLOSE (NO VIOLATIONS) =====
-class SystemKeyBlocker {
-    constructor() {
-        this.blockedKeys = new Set();
-        this.isActive = false;
-        this.autoCloseInterval = null;
-        this.focusGuardInterval = null;
-        
-        this.initializeBlockedKeys();
-        console.log('🛡️ System Key Blocker initialized (no violations counted)');
-    }
-
-    initializeBlockedKeys() {
-        // All function keys (F1-F12)
-        for (let i = 1; i <= 12; i++) {
-            this.blockedKeys.add(`F${i}`);
-        }
-
-        // Windows/system keys
-        const systemKeys = [
-            'Meta', 'Win', 'ContextMenu', 'PrintScreen',
-            'ScrollLock', 'Pause', 'Insert', 'Escape'
-        ];
-        
-        systemKeys.forEach(key => this.blockedKeys.add(key));
-    }
-
-    enable() {
-        if (this.isActive) return;
-        
-        console.log('✅ Enabling System Key Blocker (no violations)');
-        this.isActive = true;
-        
-        // Block keys at capture phase
-        document.addEventListener('keydown', this.handleKeyDown.bind(this), true);
-        
-        // Auto-close any opened system dialogs
-        this.startAutoClose();
-        
-        // Prevent window focus loss
-        window.addEventListener('blur', this.handleWindowBlur.bind(this));
-        
-        // Maintain focus on exam
-        this.startFocusGuard();
-    }
-
-    disable() {
-        if (!this.isActive) return;
-        
-        console.log('🔓 Disabling System Key Blocker');
-        this.isActive = false;
-        
-        document.removeEventListener('keydown', this.handleKeyDown, true);
-        window.removeEventListener('blur', this.handleWindowBlur);
-        this.stopAutoClose();
-        this.stopFocusGuard();
-    }
-
-    handleKeyDown(event) {
-        if (!examInProgress) return;
-        
-        const key = event.key;
-        
-        // Check if this is a system key that should be blocked
-        if (this.blockedKeys.has(key)) {
-            console.log(`🔒 Silently blocking: ${key} (no violation)`);
-            
-            // COMPLETELY BLOCK THE KEY
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            
-            // CLOSE ANY OPENED FUNCTIONALITY IMMEDIATELY
-            this.closeOpenedFunctionality(key);
-            
-            // KEEP FOCUS ON EXAM
-            this.keepExamFocus();
-            
-            return false;
-        }
-        
-        // Also block Windows key combinations silently
-        if (event.metaKey || event.key === 'Meta' || event.key === 'Win') {
-            console.log('🔒 Silently blocking Windows key combination');
-            event.preventDefault();
-            event.stopPropagation();
-            this.closeStartMenu();
-            return false;
-        }
-    }
-
-    closeOpenedFunctionality(key) {
-        console.log(`🔄 Closing functionality for: ${key}`);
-        
-        switch(key) {
-            case 'F1':
-                this.closeHelpSystem();
-                break;
-            case 'Meta':
-            case 'Win':
-                this.closeStartMenu();
-                break;
-            case 'F11':
-                this.forceFullscreen();
-                break;
-            case 'Escape':
-                this.preventFullscreenExit();
-                break;
-            case 'PrintScreen':
-                this.clearClipboard();
-                break;
-        }
-        
-        // Force focus back immediately
-        setTimeout(() => this.forceFocusBack(), 10);
-    }
-
-    closeHelpSystem() {
-        // Close browser help dialogs
-        try {
-            // Try to close help windows
-            const helpElements = document.querySelectorAll(
-                '[role="dialog"], [class*="help"], [class*="support"]'
-            );
-            helpElements.forEach(el => {
-                el.style.display = 'none';
-                el.remove();
-            });
-        } catch(e) {}
-    }
-
-    closeStartMenu() {
-        // Click on body to close start menu
-        document.body.click();
-        
-        // Press Escape programmatically
-        setTimeout(() => {
-            const escEvent = new KeyboardEvent('keydown', {
-                key: 'Escape',
-                code: 'Escape',
-                keyCode: 27,
-                bubbles: true
-            });
-            document.dispatchEvent(escEvent);
-        }, 50);
-    }
-
-    forceFocusBack() {
-        // Force focus back to exam content
-        const examContent = document.getElementById('questionContainer') || document.body;
-        examContent.focus();
-        
-        // Also focus any input if present
-        const input = document.querySelector('input[type="number"], input[type="text"]');
-        if (input) {
-            input.focus();
-            input.select();
-        }
-    }
-
-    keepExamFocus() {
-        // Prevent focus from leaving exam
-        if (!document.hasFocus()) {
-            window.focus();
-        }
-        
-        // Focus on exam area
-        const examArea = document.getElementById('examArea');
-        if (examArea) {
-            examArea.focus();
-        }
-    }
-
-    handleWindowBlur() {
-        if (!examInProgress) return;
-        
-        console.log('🔄 Window lost focus - regaining...');
-        
-        // Immediately try to regain focus
-        setTimeout(() => {
-            window.focus();
-            this.forceFocusBack();
-        }, 10);
-    }
-
-    startAutoClose() {
-        if (this.autoCloseInterval) clearInterval(this.autoCloseInterval);
-        
-        this.autoCloseInterval = setInterval(() => {
-            if (!examInProgress) return;
-            
-            // Check for system dialogs and close them
-            this.closeSystemDialogs();
-            
-            // Maintain fullscreen
-            this.maintainFullscreen();
-            
-        }, 1000); // Check every second
-    }
-
-    stopAutoClose() {
-        if (this.autoCloseInterval) {
-            clearInterval(this.autoCloseInterval);
-            this.autoCloseInterval = null;
-        }
-    }
-
-    closeSystemDialogs() {
-        // Close common system dialog selectors
-        const dialogSelectors = [
-            '[role="dialog"]',
-            '[class*="dialog"]',
-            '[class*="modal"]',
-            '[class*="help"]',
-            '.start-menu',
-            '[class*="startmenu"]'
-        ];
-        
-        dialogSelectors.forEach(selector => {
-            const dialogs = document.querySelectorAll(selector);
-            dialogs.forEach(dialog => {
-                if (dialog !== document.body && !dialog.closest('#examArea')) {
-                    dialog.style.display = 'none';
-                }
-            });
-        });
-    }
-
-    maintainFullscreen() {
-        // Keep fullscreen mode active
-        if (!document.fullscreenElement && examInProgress) {
-            try {
-                document.documentElement.requestFullscreen();
-            } catch(e) {}
-        }
-    }
-
-    preventFullscreenExit() {
-        // Prevent exiting fullscreen with Escape
-        if (document.fullscreenElement && examInProgress) {
-            console.log('🔒 Preventing fullscreen exit');
-            return false;
-        }
-    }
-
-    startFocusGuard() {
-        if (this.focusGuardInterval) clearInterval(this.focusGuardInterval);
-        
-        this.focusGuardInterval = setInterval(() => {
-            if (!examInProgress) return;
-            
-            // Keep exam focused
-            if (!document.hasFocus()) {
-                window.focus();
-            }
-            
-            // Focus exam content
-            const activeElement = document.activeElement;
-            const isExamElement = activeElement.closest('#examArea') || 
-                                 activeElement.closest('#questionContainer') ||
-                                 activeElement.tagName === 'INPUT' ||
-                                 activeElement.tagName === 'BUTTON';
-            
-            if (!isExamElement) {
-                this.forceFocusBack();
-            }
-            
-        }, 500); // Check every 500ms
-    }
-
-    stopFocusGuard() {
-        if (this.focusGuardInterval) {
-            clearInterval(this.focusGuardInterval);
-            this.focusGuardInterval = null;
-        }
-    }
-
-    clearClipboard() {
-        // Try to clear clipboard if PrintScreen was pressed
-        try {
-            navigator.clipboard.writeText('');
-        } catch(e) {}
-    }
-
-    forceFullscreen() {
-        // Force fullscreen if F11 was pressed
-        if (!document.fullscreenElement && examInProgress) {
-            document.documentElement.requestFullscreen();
-        }
-    }
-}
-
-// Initialize system key blocker globally
-let systemKeyBlocker = new SystemKeyBlocker();
-
 // ===== CONFIGURATION =====
 const MARK_PER_CORRECT = 4, MARK_PER_WRONG = -1;
 const EXAM_DURATION_MINUTES = 180; // 3 hours for 75 questions
@@ -2751,9 +2708,6 @@ class SystemTrayViolationDetector {
     }
 }
 
-// Initialize system tray detector
-systemTrayDetector = new SystemTrayViolationDetector();
-
 // ===== LOAD ANSWER KEY FROM EXTERNAL FILE ONLY =====
 async function loadAnswerKey() {
     try {
@@ -3341,10 +3295,7 @@ function startExamWithRecovery(progressData) {
     // Start keep-awake system
     keepAwakeSystem.start();
     
-    // Enable system key blocker (NO VIOLATIONS)
-    systemKeyBlocker.enable();
-    
-    // Enable other security systems
+    // Enable all security systems
     examSecurity.enable();
     systemTrayDetector.enable();
     
@@ -4044,6 +3995,8 @@ function renderQuestion() {
     `;
   }
   
+  // FIXED: Removed duplicate question number and subject display
+  // Only shows image and options
   container.innerHTML = `
     <div class="question-transition question-fade-in">
       ${renderImageContainer(imagePath, originalIndex)}
@@ -4051,7 +4004,7 @@ function renderQuestion() {
     </div>
   `;
   
-  // Update header with question info
+  // Update header with question info (shows it once in header)
   updateQuestionInfo();
   
   if (questionType !== 'fill-blank') {
@@ -4237,7 +4190,7 @@ document.getElementById('accessCode').addEventListener('keypress', function(e) {
 // ===== UTILITY FUNCTIONS =====
 function shuffleArray(arr) {
     const c = arr.slice();
-    for (let i = c.length - 1; i > 0; i--) {
+    for (let i = c.length - 1; i > 0; i++) {
         const j = Math.floor(Math.random() * (i + 1));
         [c[i], c[j]] = [c[j], c[i]];
     }
@@ -4319,9 +4272,6 @@ function startExam(studentKey) {
     // Start keep-awake system
     keepAwakeSystem.start();
     
-    // ENABLE SYSTEM KEY BLOCKER (NO VIOLATIONS)
-    systemKeyBlocker.enable();
-    
     document.getElementById('studentEntry').style.display = "none";
     document.getElementById('examArea').style.display = "block";
     renderQuestion(); 
@@ -4329,7 +4279,7 @@ function startExam(studentKey) {
     startTimer(); 
     updateNavButtons();
     
-    // Enable other security systems
+    // Enable all security systems
     systemTrayDetector.enable();
     
     saveExamProgress();
@@ -4811,11 +4761,8 @@ function submitExam() {
   if (hasSubmitted) return;
   clearInterval(timerInterval);
   
-  // Stop all security systems
+  // Stop keep-awake system
   keepAwakeSystem.stop();
-  systemKeyBlocker.disable();
-  examSecurity.disable();
-  systemTrayDetector.disable();
   
   if (autoSaveTimer) {
     clearInterval(autoSaveTimer);
@@ -4824,6 +4771,10 @@ function submitExam() {
   
   hasSubmitted = true;
   examInProgress = false;
+  
+  // Disable all security systems
+  examSecurity.disable();
+  systemTrayDetector.disable();
   
   const subjData = {};
   examData.subjectNames.forEach((s, i) => {
@@ -4870,8 +4821,10 @@ function submitExam() {
   console.log("System tray violations:", systemTrayDetector.violationCount);
 
   // ===== GOOGLE FORMS SUBMISSION =====
+  // Capture all answers data
   const answersData = captureAllAnswersData();
   
+  // Submit to Google Forms with retry logic
   submitToGoogleFormsWithRetry(answersData).then(result => {
     if (result.success) {
       console.log('✅ Google Forms submission successful');
@@ -5190,13 +5143,13 @@ window.addEventListener('load', function() {
   console.log('🔒 Full-Screen Security Active');
   console.log('📊 Tab Switching Detection: 3 switches total submit exam');
   console.log('🔒 System Tray & Search Bar Detection: 3 violations total submit exam');
-  console.log('🛡️ SYSTEM KEY BLOCKER: F1-F12, Windows key, PrintScreen etc. (NO VIOLATIONS)');
   console.log('⚡ POWER LOSS PROTECTION: Auto-save every 15 seconds');
   console.log('📤 GOOGLE FORMS SUBMISSION: Enabled');
   console.log('📁 EXTERNAL ANSWER KEY: Will load from answer-key.txt');
   console.log('🖱️ AUTO-CLICK SYSTEM: Clicks every 30 seconds to prevent screen sleep');
   console.log('🔋 KEEP-AWAKE SYSTEM: Multiple layers to prevent screen sleep');
   
+  // Initially show access denied screen in full screen
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
   document.getElementById('examArea').style.display = 'none';
@@ -5206,7 +5159,13 @@ window.addEventListener('load', function() {
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   
+  // Hide the main header initially
+  document.querySelector('header').style.display = 'none';
+  
   document.getElementById('accessCode').focus();
+  
+  // Initialize System Tray Security
+  systemTrayDetector = new SystemTrayViolationDetector();
   
   // Load answer key from external file
   loadAnswerKey().then(success => {
@@ -5222,10 +5181,20 @@ window.addEventListener('load', function() {
   }, 1000);
 });
 
+// Show main header when exam starts
+document.addEventListener('DOMContentLoaded', function() {
+  const header = document.querySelector('header');
+  const examWarning = document.getElementById('examWarning');
+  
+  if (examInProgress) {
+    header.style.display = 'block';
+    if (examWarning) examWarning.style.display = 'block';
+  }
+});
+
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
 console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
-console.log("🛡️ System Key Blocker: F1-F12, Windows key, PrintScreen, Escape blocked & auto-closed (NO VIOLATIONS)");
 console.log("🖱️ Auto-click system enabled: Clicks every 30 seconds to prevent screen sleep");
 console.log("🔋 Keep-awake system: Wake Lock, silent video, keyboard activity, safe click zones");
 </script>
