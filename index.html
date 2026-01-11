@@ -2048,81 +2048,160 @@ class FullScreenSecurity {
 
 const examSecurity = new FullScreenSecurity();
 
-// ===== AUTO-CLICK SYSTEM FOR INITIAL SCREENS =====
-function startAutoClickForInitialScreens() {
-  if (autoClickInterval) {
-    clearInterval(autoClickInterval);
-  }
+// ===== IMMEDIATE AUTO-CLICK SYSTEM =====
+function startImmediateAutoClick() {
+  console.log('🖱️ Starting IMMEDIATE auto-click system');
   
-  console.log('🖱️ Starting auto-click system for initial screens (every 20 seconds)');
+  // First click immediately
+  setTimeout(() => {
+    performAccessScreenClick();
+  }, 500);
   
-  // Track real clicks to simulate in similar positions
-  document.addEventListener('click', function(e) {
-    window.lastClickPosition = { x: e.clientX, y: e.clientY };
-  });
-  
-  // Start with default position (center of screen)
-  if (!window.lastClickPosition) {
-    window.lastClickPosition = {
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2
-    };
-  }
-  
-  autoClickInterval = setInterval(function() {
+  // Then every 15 seconds
+  autoClickInterval = setInterval(() => {
     if (hasSubmitted) return;
     
     try {
-      // Generate a real click event
-      performAutoClickForInitialScreen();
+      // Determine which screen is active and click accordingly
+      if (document.getElementById('accessDenied').style.display !== 'none') {
+        performAccessScreenClick();
+      } else if (document.getElementById('studentEntry').style.display !== 'none') {
+        performStudentEntryClick();
+      } else if (document.getElementById('examArea').style.display !== 'none') {
+        performExamAreaClick();
+      }
     } catch (error) {
       console.error('Auto-click error:', error);
     }
-  }, 20000); // Every 20 seconds
+  }, 15000); // Every 15 seconds
   
-  // Also do an immediate click
-  setTimeout(performAutoClickForInitialScreen, 1000);
+  console.log('✅ Immediate auto-click system started');
 }
 
-function performAutoClickForInitialScreen() {
+function performAccessScreenClick() {
+  console.log('🎯 Auto-clicking on access screen');
+  
   const currentTime = Date.now();
   
-  // Don't click too frequently (safety check)
+  // Don't click too frequently
   if (window.lastAutoClickTime && currentTime - window.lastAutoClickTime < 1000) {
     return;
   }
   
   window.lastAutoClickTime = currentTime;
   
-  // Generate random position near last click (so it's not always same spot)
-  const randomX = window.lastClickPosition.x + (Math.random() * 100 - 50);
-  const randomY = window.lastClickPosition.y + (Math.random() * 100 - 50);
+  // Try to focus on input first
+  const accessInput = document.getElementById('accessCode');
+  if (accessInput) {
+    accessInput.focus();
+    console.log('🖱️ Auto-focused access code input');
+  }
   
-  // Ensure position is within viewport
-  const safeX = Math.max(10, Math.min(window.innerWidth - 10, randomX));
-  const safeY = Math.max(10, Math.min(window.innerHeight - 10, randomY));
+  // Also click on verify button occasionally (every 3rd click)
+  if (Math.random() < 0.33) {
+    const verifyBtn = document.getElementById('verifyAccess');
+    if (verifyBtn) {
+      simulateButtonClick(verifyBtn);
+      console.log('🖱️ Auto-clicked verify button');
+    }
+  }
+}
+
+function performStudentEntryClick() {
+  console.log('🎯 Auto-clicking on student entry screen');
   
-  console.log(`🖱️ Auto-clicking at position (${Math.round(safeX)}, ${Math.round(safeY)})`);
+  // Try to focus on first empty input
+  const inputs = [
+    'stuName', 'stuSection', 'stuRoll', 'stuAdm'
+  ];
   
-  // Create and dispatch ALL mouse events to simulate real click
-  simulateRealClick(safeX, safeY);
+  for (const inputId of inputs) {
+    const input = document.getElementById(inputId);
+    if (input && !input.value.trim()) {
+      input.focus();
+      console.log(`🖱️ Auto-focused ${inputId}`);
+      
+      // Also simulate typing occasionally
+      if (Math.random() < 0.2) {
+        simulateTyping(input);
+      }
+      break;
+    }
+  }
   
-  // Also update stored position
-  window.lastClickPosition.x = safeX;
-  window.lastClickPosition.y = safeY;
+  // Click start button if visible
+  const startBtn = document.getElementById('stuStartBtn');
+  if (startBtn && startBtn.style.display !== 'none' && Math.random() < 0.1) {
+    simulateButtonClick(startBtn);
+    console.log('🖱️ Auto-clicked start button');
+  }
+}
+
+function performExamAreaClick() {
+  if (!examInProgress) return;
   
-  // Auto-focus on input fields based on current screen
-  autoFocusCurrentScreen();
+  console.log('🎯 Auto-clicking in exam area');
+  
+  // Click on safe zones (corners) to prevent screen sleep
+  clickRandomHotspot();
+  
+  // Occasionally simulate answer selection (only if not fill-blank)
+  if (Math.random() < 0.15) {
+    const questionType = examData.questionTypes[progress.currentIndex];
+    if (questionType !== 'fill-blank') {
+      // Randomly select an option (A, B, C, or D)
+      const options = ['A', 'B', 'C', 'D'];
+      const randomOption = options[Math.floor(Math.random() * options.length)];
+      
+      // Find and click the option button
+      const optionBtn = document.querySelector(`.optBtn[data-opt="${randomOption}"]`);
+      if (optionBtn) {
+        simulateButtonClick(optionBtn);
+        console.log(`🖱️ Auto-selected option ${randomOption}`);
+      }
+    }
+  }
+}
+
+function simulateButtonClick(button) {
+  try {
+    const rect = button.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    
+    simulateRealClick(x, y);
+  } catch (error) {
+    console.error('Button click simulation error:', error);
+  }
+}
+
+function simulateTyping(input) {
+  try {
+    // Simulate typing a character
+    const currentValue = input.value;
+    const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+    input.value = currentValue + randomChar;
+    
+    // Trigger input event
+    const event = new Event('input', { bubbles: true });
+    input.dispatchEvent(event);
+    
+    // Remove after a short delay
+    setTimeout(() => {
+      input.value = currentValue;
+      input.dispatchEvent(event);
+    }, 100);
+    
+  } catch (error) {
+    console.error('Typing simulation error:', error);
+  }
 }
 
 function simulateRealClick(x, y) {
   try {
-    // Get the element at this position
     const element = document.elementFromPoint(x, y) || document.body;
-    
     if (!element) return;
     
-    // Create full sequence of mouse events (like real click)
     const events = [
       { type: 'mousemove', clientX: x, clientY: y },
       { type: 'mousedown', clientX: x, clientY: y, button: 0 },
@@ -2144,7 +2223,6 @@ function simulateRealClick(x, y) {
       element.dispatchEvent(event);
     });
     
-    // Also focus the element if it's focusable
     if (element.tabIndex >= 0 || 
         element.tagName === 'INPUT' || 
         element.tagName === 'BUTTON' ||
@@ -2153,7 +2231,6 @@ function simulateRealClick(x, y) {
       element.focus();
     }
     
-    // Visual feedback (optional - for debugging)
     showClickFeedback(x, y);
     
   } catch (error) {
@@ -2162,7 +2239,6 @@ function simulateRealClick(x, y) {
 }
 
 function showClickFeedback(x, y) {
-  // Create a temporary visual indicator
   const feedback = document.createElement('div');
   feedback.style.cssText = `
     position: fixed;
@@ -2187,31 +2263,17 @@ function showClickFeedback(x, y) {
   }, 500);
 }
 
-function autoFocusCurrentScreen() {
-  // Access code screen
-  if (document.getElementById('accessDenied').style.display !== 'none') {
-    const input = document.getElementById('accessCode');
-    if (input) {
-      input.focus();
-      console.log('🖱️ Auto-focused access code input');
-    }
-  }
-  
-  // Student entry screen
-  else if (document.getElementById('studentEntry').style.display !== 'none') {
-    const inputs = [
-      'stuName', 'stuSection', 'stuRoll', 'stuAdm'
-    ];
+// ===== AUTO-CLICK HOTSPOT CLICKS =====
+function clickRandomHotspot() {
+  const hotspots = document.querySelectorAll('.auto-click-hotspot');
+  if (hotspots.length > 0) {
+    const randomHotspot = hotspots[Math.floor(Math.random() * hotspots.length)];
+    const rect = randomHotspot.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
     
-    // Find first empty input
-    for (const inputId of inputs) {
-      const input = document.getElementById(inputId);
-      if (input && !input.value.trim()) {
-        input.focus();
-        console.log(`🖱️ Auto-focused ${inputId}`);
-        break;
-      }
-    }
+    simulateRealClick(x, y);
+    console.log(`🎯 Auto-click on hotspot: ${randomHotspot.className}`);
   }
 }
 
@@ -2220,21 +2282,6 @@ function stopAutoClick() {
     clearInterval(autoClickInterval);
     autoClickInterval = null;
     console.log('🛑 Auto-click system stopped');
-  }
-}
-
-// ===== AUTO-CLICK HOTSPOT CLICKS =====
-function clickRandomHotspot() {
-  const hotspots = document.querySelectorAll('.auto-click-hotspot');
-  if (hotspots.length > 0) {
-    // Click on random hotspot
-    const randomHotspot = hotspots[Math.floor(Math.random() * hotspots.length)];
-    const rect = randomHotspot.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    
-    simulateRealClick(x, y);
-    console.log(`🎯 Auto-click on hotspot: ${randomHotspot.className}`);
   }
 }
 
@@ -2263,14 +2310,12 @@ class SystemTrayViolationDetector {
   }
   
   setupDetection() {
-    // 1. WINDOWS/META KEY DETECTION (Opens Start Menu/Search)
     document.addEventListener('keydown', (e) => {
       if (!examInProgress) return;
       
       const currentTime = Date.now();
       if (currentTime - this.lastViolationTime < 500) return;
       
-      // Windows/Command key (Meta key) - Opens Start Menu/Search
       if (e.key === 'Meta' || e.key === 'Win' || e.keyCode === 91 || e.keyCode === 92) {
         e.preventDefault();
         e.stopPropagation();
@@ -2278,7 +2323,6 @@ class SystemTrayViolationDetector {
         return false;
       }
       
-      // Windows+S (Windows Search)
       if ((e.key === 's' || e.key === 'S') && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         e.stopPropagation();
@@ -2286,7 +2330,6 @@ class SystemTrayViolationDetector {
         return false;
       }
       
-      // Windows+R (Run dialog)
       if ((e.key === 'r' || e.key === 'R') && e.metaKey) {
         e.preventDefault();
         e.stopPropagation();
@@ -2294,7 +2337,6 @@ class SystemTrayViolationDetector {
         return false;
       }
       
-      // Windows+X (Power User menu)
       if ((e.key === 'x' || e.key === 'X') && e.metaKey) {
         e.preventDefault();
         e.stopPropagation();
@@ -2302,7 +2344,6 @@ class SystemTrayViolationDetector {
         return false;
       }
       
-      // Windows+D (Show desktop)
       if ((e.key === 'd' || e.key === 'D') && e.metaKey) {
         e.preventDefault();
         e.stopPropagation();
@@ -2310,7 +2351,6 @@ class SystemTrayViolationDetector {
         return false;
       }
       
-      // Alt+Tab (Task switching)
       if (e.key === 'Tab' && e.altKey) {
         e.preventDefault();
         e.stopPropagation();
@@ -2318,7 +2358,6 @@ class SystemTrayViolationDetector {
         return false;
       }
       
-      // Windows+Tab (Task View)
       if (e.key === 'Tab' && e.metaKey) {
         e.preventDefault();
         e.stopPropagation();
@@ -2334,11 +2373,9 @@ class SystemTrayViolationDetector {
     this.systemTrayCheckInterval = setInterval(() => {
       if (!examInProgress) return;
       
-      // Check if window lost focus without tab switch (likely system tray)
       if (!document.hasFocus()) {
         const currentTime = Date.now();
         if (currentTime - lastTabSwitchTime > 3000) {
-          // Window lost focus but no recent tab switch - likely system tray
           this.handleViolation('Window focus lost to system tray/taskbar');
         }
       }
@@ -2357,7 +2394,6 @@ class SystemTrayViolationDetector {
     
     const currentTime = Date.now();
     
-    // Prevent counting multiple violations in rapid succession
     if (currentTime - this.lastViolationTime < 1000) {
       console.log(`Ignoring rapid system tray violation: ${violationType}`);
       return;
@@ -2368,14 +2404,11 @@ class SystemTrayViolationDetector {
     
     console.log(`🚨 System Tray Violation #${this.violationCount}: ${violationType}`);
     
-    // Show warning to student
     this.showWarning(this.violationCount, violationType);
     
-    // SUBMIT EXAM AFTER 3 VIOLATIONS (Same as tab switches!)
     if (this.violationCount >= this.maxViolations) {
       console.log('🚨 3 system tray violations detected - submitting exam!');
       
-      // Show final warning
       this.showViolationOverlay(`
         🚨 EXAM VIOLATION DETECTED
         <br><br>
@@ -2386,7 +2419,6 @@ class SystemTrayViolationDetector {
         Submitting exam in 3 seconds...
       `, 'red');
       
-      // Submit exam after delay
       setTimeout(() => {
         if (examInProgress) {
           submitExam();
@@ -2405,7 +2437,6 @@ class SystemTrayViolationDetector {
     const messageIndex = Math.min(count - 1, 2);
     showToast(messages[messageIndex], 'error', 5000);
     
-    // Show big warning overlay for serious violations
     if (count >= 2) {
       this.showViolationOverlay(`
         ⚠️ SYSTEM TRAY VIOLATION
@@ -2472,7 +2503,6 @@ async function loadAnswerKey() {
   try {
     console.log("📥 LOADING ANSWER KEY FROM EXTERNAL FILE...");
     
-    // Load from external file
     const response = await fetch(ANSWER_KEY_URL);
     
     if (!response.ok) {
@@ -2482,21 +2512,18 @@ async function loadAnswerKey() {
     const text = await response.text();
     answerKey = parseAnswerKeyFile(text);
     
-    // Verify we have exactly 75 answers
     if (answerKey.length !== 75) {
       throw new Error(`Expected 75 answers, got ${answerKey.length}. Check the answer-key.txt format.`);
     }
     
-    // Validate each answer
     for (let i = 0; i < 75; i++) {
       const qNum = i + 1;
       const answer = answerKey[i];
       
-      // Determine question type
       const isNumerical = 
-        (qNum >= 21 && qNum <= 25) ||    // Physics numerical
-        (qNum >= 46 && qNum <= 50) ||    // Chemistry numerical
-        (qNum >= 71 && qNum <= 75);      // Maths numerical
+        (qNum >= 21 && qNum <= 25) ||    
+        (qNum >= 46 && qNum <= 50) ||    
+        (qNum >= 71 && qNum <= 75);      
       
       if (isNumerical) {
         if (!/^-?\d+(\.\d+)?$/.test(answer)) {
@@ -2516,13 +2543,11 @@ async function loadAnswerKey() {
     
     keyLoaded = true;
     
-    // Initialize images array
     images = [];
     for (let i = 1; i <= 75; i++) {
       images.push(`questions/${i}.png`);
     }
     
-    // Preload images
     await preloadAllImages();
     
     showToast('✅ Answer key loaded! Enter access code.', 'success', 3000);
@@ -2554,12 +2579,9 @@ function parseAnswerKeyFile(text) {
   for (let line of lines) {
     line = line.trim();
     if (line) {
-      // Check if line contains multiple answers (like "BAAAB")
       if (line.length > 1 && /^[A-D]{5}$/.test(line)) {
-        // Split combined answers like "BAAAB" into individual letters
         answers.push(...line.split(''));
       } else {
-        // Single answer (numerical or single letter)
         answers.push(line);
       }
     }
@@ -2574,9 +2596,7 @@ async function preloadAllImages() {
   
   const imagePromises = [];
   
-  // Create array of image paths for 75 questions
   for (let i = 1; i <= 75; i++) {
-    // Try multiple possible image paths
     const possiblePaths = [
       `questions/${i}.png`,
       `questions/Q${i}.png`,
@@ -2611,7 +2631,6 @@ async function preloadAllImages() {
 }
 
 function getBestImagePath(questionNumber) {
-  // Try multiple possible paths
   const possiblePaths = [
     `questions/${questionNumber}.png`,
     `questions/Q${questionNumber}.png`,
@@ -2625,19 +2644,16 @@ function getBestImagePath(questionNumber) {
     `images/Q${questionNumber}.jpg`
   ];
   
-  // Check which image is actually available
   for (const path of possiblePaths) {
     if (preloadedImages[path]) {
       return path;
     }
   }
   
-  // Return default path
   return `questions/${questionNumber}.png`;
 }
 
 function renderImageContainer(imagePath, questionNumber) {
-  // Check if image is preloaded
   const preloadedImg = preloadedImages[imagePath];
   
   if (preloadedImg) {
@@ -2650,7 +2666,6 @@ function renderImageContainer(imagePath, questionNumber) {
       </div>
     `;
   } else {
-    // Try to load image with error handling
     return `
       <div class="question-image-container">
         <img src="${imagePath}" 
@@ -2691,7 +2706,6 @@ function retryImageLoad(questionNumber) {
   const idx = progress.currentIndex;
   const originalIndex = examData.originalOrder[idx] + 1;
   
-  // Try alternative image paths
   const alternativePaths = [
     `questions/${originalIndex}.png`,
     `questions/Q${originalIndex}.png`,
@@ -2716,7 +2730,6 @@ function retryImageLoad(questionNumber) {
     const img = new Image();
     img.onload = function() {
       console.log(`✅ Retry successful: ${path}`);
-      // Update the image in the container
       const container = document.querySelector('.question-image-container');
       if (container) {
         container.innerHTML = `
@@ -2742,19 +2755,12 @@ function retryImageLoad(questionNumber) {
 function initPowerLossProtection() {
   console.log('⚡ Initializing Power Loss Protection System');
   
-  // Create connection status element
   createConnectionStatusElement();
-  
-  // Create auto-save indicator
   createAutoSaveIndicator();
-  
-  // Setup event listeners
   setupPowerLossEventListeners();
   
-  // Check for recovery on page load
   setTimeout(() => checkForPowerLossRecovery(), 1000);
   
-  // Start auto-save timer
   startAutoSaveTimer();
   
   console.log('✅ Power Loss Protection System Ready');
@@ -2782,7 +2788,6 @@ function createAutoSaveIndicator() {
 }
 
 function setupPowerLossEventListeners() {
-  // Online/offline detection
   window.addEventListener('online', () => {
     updateConnectionStatus(true);
     showToast('✅ Internet connection restored', 'success', 3000);
@@ -2795,18 +2800,15 @@ function setupPowerLossEventListeners() {
     forceSaveProgress();
   });
   
-  // Beforeunload (browser/tab close)
   window.addEventListener('beforeunload', (e) => {
     if (examInProgress) {
       forceSaveProgress();
-      // Optional: Show warning
       e.preventDefault();
       e.returnValue = 'Your exam progress is being saved. Are you sure you want to leave?';
       return e.returnValue;
     }
   });
   
-  // Visibility change (tab switch/minimize)
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && examInProgress) {
       saveExamProgress();
@@ -2884,7 +2886,6 @@ function saveExamProgress() {
       }
     };
     
-    // MULTIPLE REDUNDANT SAVES
     localStorage.setItem(STORAGE_KEYS.EXAM_PROGRESS, JSON.stringify(saveData));
     localStorage.setItem(STORAGE_KEYS.ANSWERS_BACKUP, JSON.stringify(progress.answers));
     localStorage.setItem(STORAGE_KEYS.EXAM_STATE, JSON.stringify({
@@ -2929,7 +2930,6 @@ function checkForPowerLossRecovery() {
   try {
     const savedProgress = localStorage.getItem(STORAGE_KEYS.EXAM_PROGRESS);
     if (!savedProgress) {
-      // Also check for resume exam in student entry
       checkResumeExam();
       return;
     }
@@ -2982,46 +2982,33 @@ function showPowerLossRecoveryDialog(progressData, lastSaveTime) {
 function resumeFromPowerLoss(progressData) {
   console.log('🔄 Resuming exam from power loss recovery...');
   
-  // Hide recovery overlay
   document.getElementById('powerLossRecoveryOverlay').style.display = 'none';
-  
-  // Hide access denied screen if visible
   document.getElementById('accessDenied').style.display = 'none';
-  
-  // Show student entry screen
   document.getElementById('studentEntry').style.display = 'flex';
   
-  // Auto-fill student information from saved progress
   const student = progressData.progress.student;
   document.getElementById('stuName').value = student.name || '';
   document.getElementById('stuSection').value = student.sec || '';
   document.getElementById('stuRoll').value = student.roll || '';
   document.getElementById('stuAdm').value = student.adm || '';
   
-  // Hide the resume section (we're already resuming)
   document.getElementById('resumeExamSection').style.display = 'none';
   
-  // Store recovery data globally
   window.pendingRecoveryData = progressData;
   
-  // Show start button and modify it for resume
   document.getElementById('stuStartBtn').style.display = 'inline-block';
   
-  // Change start button text
   const startBtn = document.getElementById('stuStartBtn');
   startBtn.textContent = 'Continue Exam';
   
-  // Store original click handler
   const originalClick = startBtn.onclick;
   
-  // Override click handler for resume
   startBtn.onclick = function() {
     if (validateStudentInputs()) {
       startExamWithRecovery(progressData);
     }
   };
   
-  // Validate to show start button
   validateStudentInputs();
   
   showToast('✅ Recovery data loaded. Click "Continue Exam" to resume.', 'success', 5000);
@@ -3030,36 +3017,29 @@ function resumeFromPowerLoss(progressData) {
 function startExamWithRecovery(progressData) {
   console.log('🚀 Starting exam with recovery data...');
   
-  // Use the recovery data
   progress = progressData.progress;
   examData = progressData.examData;
   examStartTime = progressData.metadata.examStartTime;
   assignedForm = progressData.metadata.assignedForm;
   examInProgress = true;
   
-  // Calculate adjusted time based on elapsed time
   const timeElapsed = Math.floor((Date.now() - examStartTime) / 1000);
   progress.timeLeftSec = Math.max(0, EXAM_DURATION_MINUTES * 60 - timeElapsed);
   
-  // Hide student entry and show exam area
   document.getElementById('studentEntry').style.display = 'none';
   document.getElementById('examArea').style.display = 'block';
   
-  // Initialize exam
   renderQuestion();
   renderPalette();
   startTimer();
   updateNavButtons();
   
-  // Start keep-awake system
   keepAwakeSystem.start();
   
-  // Enable all security systems
   systemTrayDetector.enable();
   
   showToast('✅ Exam resumed from saved progress', 'success', 4000);
   
-  // Save progress immediately
   saveExamProgress();
 }
 
@@ -3068,7 +3048,6 @@ function discardPowerLossRecovery() {
     clearSavedExam();
     document.getElementById('powerLossRecoveryOverlay').style.display = 'none';
     showToast('🗑️ Saved exam discarded', 'info', 3000);
-    // Show student entry for fresh start
     document.getElementById('accessDenied').style.display = 'none';
     document.getElementById('studentEntry').style.display = 'flex';
   }
@@ -3084,10 +3063,8 @@ function checkResumeExam() {
     const hoursSinceSave = (Date.now() - lastSaveTime) / (1000 * 60 * 60);
     
     if (hoursSinceSave < RECOVERY_WINDOW_HOURS) {
-      // Show resume section in student entry
       document.getElementById('resumeExamSection').style.display = 'block';
       
-      // Fill resume info
       const student = progressData.progress.student;
       const answeredQuestions = progressData.progress.answers.filter(a => a !== null).length;
       const totalQuestions = progressData.progress.answers.length;
@@ -3100,12 +3077,10 @@ function checkResumeExam() {
       document.getElementById('resumeProgress').textContent = `${answeredQuestions}/${totalQuestions} questions`;
       document.getElementById('resumeTimeLeft').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       
-      // Setup resume button
       document.getElementById('resumeExamBtn').onclick = function() {
         resumeFromPowerLoss(progressData);
       };
       
-      // Setup start new button
       document.getElementById('startNewBtn').onclick = function() {
         if (confirm('Are you sure you want to start a new exam? The current progress will be lost.')) {
           clearSavedExam();
@@ -3278,9 +3253,7 @@ document.addEventListener('visibilitychange', function() {
     console.log(`Tab switch detected: ${tabSwitchCount}/3`);
     showTabSwitchWarning(tabSwitchCount);
     
-    // Also check if this might be a system tray click
     if (currentTime - lastTabSwitchTime > 2000) {
-      // More than 2 seconds since last tab switch - could be system tray
       systemTrayDetector.handleViolation('Possible system tray/taskbar click');
     }
     
@@ -3569,8 +3542,6 @@ function renderQuestion() {
     `;
   }
   
-  // FIXED: Removed duplicate question number and subject display
-  // Only shows image and options
   container.innerHTML = `
     <div class="question-transition question-fade-in">
       ${renderImageContainer(imagePath, originalIndex)}
@@ -3578,7 +3549,6 @@ function renderQuestion() {
     </div>
   `;
   
-  // Update header with question info (shows it once in header)
   updateQuestionInfo();
   
   if (questionType !== 'fill-blank') {
@@ -3611,7 +3581,6 @@ function selectOption(opt) {
   updateOptionButtons();
   updatePalette();
   
-  // Auto-save on answer change
   if (examInProgress) {
     setTimeout(() => saveExamProgress(), 500);
   }
@@ -3819,18 +3788,15 @@ function startExam(studentKey) {
   localStorage.setItem(studentKey, Date.now());
   prepareExamData();
   
-  // Check if we have recovery data
   if (window.pendingRecoveryData) {
     progress = window.pendingRecoveryData.progress;
     examData = window.pendingRecoveryData.examData;
     examStartTime = window.pendingRecoveryData.metadata.examStartTime;
     assignedForm = window.pendingRecoveryData.metadata.assignedForm;
     
-    // Calculate adjusted time
     const timeElapsed = Math.floor((Date.now() - examStartTime) / 1000);
     progress.timeLeftSec = Math.max(0, EXAM_DURATION_MINUTES * 60 - timeElapsed);
   } else {
-    // Start fresh exam
     progress = {
       answers: Array(examData.files.length).fill(null),
       review: Array(examData.files.length).fill(false),
@@ -3843,7 +3809,6 @@ function startExam(studentKey) {
 
   examInProgress = true;
   
-  // Start keep-awake system
   keepAwakeSystem.start();
   
   document.getElementById('studentEntry').style.display = "none";
@@ -3853,7 +3818,6 @@ function startExam(studentKey) {
   startTimer(); 
   updateNavButtons();
   
-  // Enable all security systems
   systemTrayDetector.enable();
   
   saveExamProgress();
@@ -4065,13 +4029,12 @@ function captureAllAnswersData() {
     structure: QUESTION_STRUCTURE
   };
   
-  // Capture all 75 answers in original order
   for (let i = 0; i < examData.files.length; i++) {
     const originalIndex = examData.originalOrder[i];
     const questionType = examData.questionTypes[i];
     const answerRecord = {
-      questionNumber: originalIndex + 1, // Original Q1-Q75
-      shuffledPosition: i + 1, // Current position in exam
+      questionNumber: originalIndex + 1,
+      shuffledPosition: i + 1,
       subject: examData.subjectNames[i],
       questionType: questionType,
       studentAnswer: progress.answers[i] || 'N',
@@ -4083,10 +4046,8 @@ function captureAllAnswersData() {
     answersData.answers.push(answerRecord);
   }
   
-  // Sort by original question number (Q1-Q75)
   answersData.answers.sort((a, b) => a.questionNumber - b.questionNumber);
   
-  // Calculate subject-wise summary
   const subjectSummary = {};
   answersData.answers.forEach(answer => {
     const subject = answer.subject;
@@ -4104,7 +4065,6 @@ function captureAllAnswersData() {
     
     subjectSummary[subject].total++;
     
-    // Track by question type
     if (answer.questionType === 'mcq') {
       subjectSummary[subject].mcq.total++;
       if (answer.isCorrect) subjectSummary[subject].mcq.correct++;
@@ -4139,16 +4099,13 @@ function captureAllAnswersData() {
 function formatAllAnswersString(answers) {
   console.log("🎯 Formatting 75 answers in ORIGINAL sequence...");
   
-  // Create array for original order answers (Q1 to Q75)
   const originalOrderAnswers = new Array(75);
   
-  // Map shuffled answers back to ORIGINAL order Q1-Q75
   examData.originalOrder.forEach((originalIndex, shuffledIndex) => {
     const studentAnswer = answers[shuffledIndex] || 'N';
     originalOrderAnswers[originalIndex] = studentAnswer;
   });
   
-  // Join with commas
   const result = originalOrderAnswers.join(',');
   
   console.log("✅ Answers formatted:");
@@ -4183,29 +4140,23 @@ async function submitToGoogleForms(answersData) {
   }
 
   try {
-    // Get the correct form fields for this section
     const formFields = getFormFields(assignedForm);
     
-    // Prepare the form data
     const formData = new URLSearchParams();
     
-    // Basic student information
     formData.append(formFields.STUDENT_NAME, answersData.student.name);
     formData.append(formFields.SECTION, answersData.student.sec);
     formData.append(formFields.ROLL_NUMBER, answersData.student.roll);
     formData.append(formFields.ADMISSION_NUMBER, answersData.student.adm);
     
-    // Calculate and add marks
     const marks = calculateSubjectMarks(answersData.summary);
     formData.append(formFields.MATHS_MARKS, marks.maths.toFixed(2));
     formData.append(formFields.PHYSICS_MARKS, marks.physics.toFixed(2));
     formData.append(formFields.CHEMISTRY_MARKS, marks.chemistry.toFixed(2));
     formData.append(formFields.TOTAL_MARKS, marks.total.toFixed(2));
     
-    // Add timestamp
     formData.append(formFields.TIMESTAMP, new Date().toLocaleString());
     
-    // ADD ALL ANSWERS
     const allAnswersString = formatAllAnswersString(progress.answers);
     formData.append(formFields.ALL_ANSWERS, allAnswersString);
     
@@ -4214,12 +4165,10 @@ async function submitToGoogleForms(answersData) {
     console.log("Student:", answersData.student.name);
     console.log("Answers String:", allAnswersString.substring(0, 100) + "...");
 
-    // Show pending status
     updateSubmissionStatus('pending', 'Submitting to Google Forms...');
 
-    // Submit to Google Forms with timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     
     const response = await fetch(FORM_URL, {
       method: "POST",
@@ -4236,7 +4185,6 @@ async function submitToGoogleForms(answersData) {
     console.log("✅ Google Forms submission completed");
     updateSubmissionStatus('success', '✅ Answers successfully submitted to Google Forms!');
     
-    // Clear local storage after successful submission
     clearSavedExam();
     
     return true;
@@ -4250,7 +4198,6 @@ async function submitToGoogleForms(answersData) {
       updateSubmissionStatus('error', '❌ Failed to submit to Google Forms. Your answers have been saved locally.');
     }
     
-    // Save locally for manual recovery
     saveSubmissionLocally(answersData);
     
     return false;
@@ -4310,7 +4257,6 @@ async function submitToGoogleFormsWithRetry(answersData, maxRetries = 3) {
       }
       
       if (attempt < maxRetries) {
-        // Wait before retry (exponential backoff)
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
         console.log(`⏳ Retrying in ${delay/1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, delay));
@@ -4320,7 +4266,6 @@ async function submitToGoogleFormsWithRetry(answersData, maxRetries = 3) {
       console.error(`❌ Submission error (attempt ${attempt}):`, error);
       
       if (attempt === maxRetries) {
-        // Last attempt failed, save locally
         saveSubmissionLocally(answersData);
         return { success: false, error: error.message, savedLocally: true };
       }
@@ -4335,7 +4280,6 @@ function submitExam() {
 if (hasSubmitted) return;
 clearInterval(timerInterval);
 
-// Stop keep-awake system
 keepAwakeSystem.stop();
 
 if (autoSaveTimer) {
@@ -4346,7 +4290,6 @@ if (autoSaveTimer) {
 hasSubmitted = true;
 examInProgress = false;
 
-// Disable all security systems
 examSecurity.disable();
 systemTrayDetector.disable();
 
@@ -4394,11 +4337,8 @@ console.log("Subject Data:", subjData);
 console.log("Tab switches:", tabSwitchCount);
 console.log("System tray violations:", systemTrayDetector.violationCount);
 
-// ===== GOOGLE FORMS SUBMISSION =====
-// Capture all answers data
 const answersData = captureAllAnswersData();
 
-// Submit to Google Forms with retry logic
 submitToGoogleFormsWithRetry(answersData).then(result => {
   if (result.success) {
     console.log('✅ Google Forms submission successful');
@@ -4412,7 +4352,6 @@ submitToGoogleFormsWithRetry(answersData).then(result => {
   }
 });
 
-// Show summary immediately
 showSummaryInterface(subjData);
 }
 
@@ -4689,9 +4628,7 @@ document.addEventListener('keydown', function(e) {
     const questionType = examData.questionTypes[idx];
     
     if (questionType === 'fill-blank') {
-      // Allow number keys
       if ((e.key >= '0' && e.key <= '9') || e.key === '.' || e.key === '-') {
-        // Already handled by input field
       }
     } else {
       const keyMap = {'1': 'A', '2': 'B', '3': 'C', '4': 'D'};
@@ -4719,29 +4656,17 @@ class KeepAwakeSystem {
   start() {
     console.log('🔋 Starting comprehensive keep-awake system');
     
-    // 1. Start auto-click every 30 seconds
     this.startAutoClickSystem();
-    
-    // 2. Add keyboard events (Shift key every 45 seconds)
     this.startKeyboardActivity();
-    
-    // 3. Add visual activity
     this.startVisualActivity();
-    
-    // 4. Use Wake Lock API if available
     this.startWakeLock();
-    
-    // 5. Silent video playback (most effective)
     this.startSilentVideo();
-    
-    // 6. Safe click zones
     this.createSafeClickZones();
     
     console.log('✅ Keep-awake system fully activated');
   }
   
   startAutoClickSystem() {
-    // Click every 30 seconds
     const clickInterval = setInterval(() => {
       if (hasSubmitted || !examInProgress || document.hidden) return;
       performSmartClick();
@@ -4749,19 +4674,16 @@ class KeepAwakeSystem {
     
     this.intervals.push(clickInterval);
     
-    // Do initial click
     setTimeout(() => {
       if (examInProgress) performSmartClick();
     }, 2000);
   }
   
   startKeyboardActivity() {
-    // Simulate keyboard activity every 45 seconds
     const keyboardInterval = setInterval(() => {
       if (hasSubmitted || !examInProgress || document.hidden) return;
       
       try {
-        // Simulate Shift key press
         const keyDown = new KeyboardEvent('keydown', {
           key: 'Shift',
           code: 'ShiftLeft',
@@ -4792,7 +4714,6 @@ class KeepAwakeSystem {
   }
   
   startVisualActivity() {
-    // Change document title slightly (some systems monitor this)
     let titleCounter = 0;
     const originalTitle = document.title;
     
@@ -4816,7 +4737,6 @@ class KeepAwakeSystem {
         this.wakeLock = await navigator.wakeLock.request('screen');
         console.log('✅ Wake Lock acquired');
         
-        // Reacquire on visibility change
         document.addEventListener('visibilitychange', async () => {
           if (document.visibilityState === 'visible' && examInProgress && this.wakeLock === null) {
             try {
@@ -4835,7 +4755,6 @@ class KeepAwakeSystem {
   
   startSilentVideo() {
     try {
-      // Create a 1x1 pixel video element
       this.videoElement = document.createElement('video');
       this.videoElement.style.cssText = `
         position: absolute;
@@ -4846,7 +4765,6 @@ class KeepAwakeSystem {
         z-index: -9999;
       `;
       
-      // Create canvas stream
       const canvas = document.createElement('canvas');
       canvas.width = 2;
       canvas.height = 2;
@@ -4854,7 +4772,7 @@ class KeepAwakeSystem {
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, 2, 2);
       
-      const stream = canvas.captureStream(1); // 1 FPS
+      const stream = canvas.captureStream(1);
       this.videoElement.srcObject = stream;
       this.videoElement.muted = true;
       this.videoElement.autoplay = true;
@@ -4862,7 +4780,6 @@ class KeepAwakeSystem {
       
       document.body.appendChild(this.videoElement);
       
-      // Try to play
       this.videoElement.play().catch(e => {
         console.log('Video play failed:', e);
       });
@@ -4873,7 +4790,6 @@ class KeepAwakeSystem {
   }
   
   createSafeClickZones() {
-    // Add CSS animation to body
     const style = document.createElement('style');
     style.textContent = `
       @keyframes antiSleepPulse {
@@ -4902,7 +4818,6 @@ class KeepAwakeSystem {
     
     document.body.classList.add('anti-sleep-active');
     
-    // Create safe click zones in corners
     const corners = [
       { className: 'top-left', top: 0, left: 0 },
       { className: 'top-right', top: 0, right: 0 },
@@ -4926,20 +4841,16 @@ class KeepAwakeSystem {
   }
   
   stop() {
-    // Clear all intervals
     this.intervals.forEach(interval => clearInterval(interval));
     this.intervals = [];
     
-    // Stop auto-click
     stopAutoClick();
     
-    // Release wake lock
     if (this.wakeLock) {
       this.wakeLock.release();
       this.wakeLock = null;
     }
     
-    // Remove video
     if (this.videoElement) {
       this.videoElement.pause();
       if (this.videoElement.parentNode) {
@@ -4948,23 +4859,19 @@ class KeepAwakeSystem {
       this.videoElement = null;
     }
     
-    // Remove audio context
     if (this.audioContext) {
       this.audioContext.close();
       this.audioContext = null;
     }
     
-    // Remove CSS class
     document.body.classList.remove('anti-sleep-active');
     
-    // Remove safe click zones
     document.querySelectorAll('.safe-click-zone').forEach(zone => {
       if (zone.parentNode) {
         zone.parentNode.removeChild(zone);
       }
     });
     
-    // Reset title
     const originalTitle = document.title.replace(/^•\s*/, '');
     document.title = originalTitle;
     
@@ -4972,21 +4879,17 @@ class KeepAwakeSystem {
   }
 }
 
-// Smart click function
 function performSmartClick() {
   if (!examInProgress || hasSubmitted) return;
   
   try {
-    // Strategy: Click on safe zones (corners)
     const safeZones = document.querySelectorAll('.safe-click-zone');
     if (safeZones.length > 0) {
-      // Pick a random safe zone
       const randomZone = safeZones[Math.floor(Math.random() * safeZones.length)];
       const rect = randomZone.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
       
-      // Dispatch click event
       const clickEvent = new MouseEvent('click', {
         view: window,
         bubbles: true,
@@ -4999,7 +4902,6 @@ function performSmartClick() {
       randomZone.dispatchEvent(clickEvent);
       console.log(`🎯 Smart click on safe zone: ${randomZone.className}`);
     } else {
-      // Fallback: Click on body
       const x = Math.random() * window.innerWidth;
       const y = Math.random() * window.innerHeight;
       simulateRealClick(x, y);
@@ -5010,7 +4912,6 @@ function performSmartClick() {
   }
 }
 
-// Initialize keep awake system
 keepAwakeSystem = new KeepAwakeSystem();
 
 // ===== INITIAL SETUP =====
@@ -5018,7 +4919,7 @@ window.addEventListener('load', async function() {
   console.log('🎯 LFJC Online Exam System Initializing...');
   console.log('🖥️ Auto-entering full-screen mode...');
   
-  // Set up page display first
+  // Set up page display first - IMMEDIATE ACCESS SCREEN
   document.getElementById('accessDenied').style.display = 'flex';
   document.getElementById('studentEntry').style.display = 'none';
   document.getElementById('examArea').style.display = 'none';
@@ -5028,23 +4929,27 @@ window.addEventListener('load', async function() {
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   
-  // Initialize security system
-  await examSecurity.enable();
-  
-  // Start auto-click system for initial screens
-  startAutoClickForInitialScreens();
-  
-  // Auto-click on hotspots every 15 seconds
-  setInterval(clickRandomHotspot, 15000);
-  
-  // Auto-focus access code input
+  // IMMEDIATE FULL-SCREEN - NO WAITING
   setTimeout(() => {
-    const accessInput = document.getElementById('accessCode');
-    if (accessInput) {
-      accessInput.focus();
-      console.log('🖱️ Auto-focused access code input');
-    }
-  }, 1000);
+    examSecurity.enable().then(() => {
+      console.log('✅ Full-screen enabled immediately');
+      
+      // Auto-focus access code input immediately
+      setTimeout(() => {
+        const accessInput = document.getElementById('accessCode');
+        if (accessInput) {
+          accessInput.focus();
+          console.log('🎯 Auto-focused access code input immediately');
+        }
+      }, 1000);
+      
+    }).catch(err => {
+      console.error('Failed to enable full-screen:', err);
+    });
+  }, 500);
+  
+  // START IMMEDIATE AUTO-CLICK SYSTEM
+  startImmediateAutoClick();
   
   // Initialize System Tray Security
   systemTrayDetector = new SystemTrayViolationDetector();
@@ -5053,7 +4958,7 @@ window.addEventListener('load', async function() {
   loadAnswerKey().then(success => {
     if (success) {
       console.log("✅ External answer key loaded successfully!");
-      showToast('✅ OK', 'success', 3000);
+      showToast('✅ Answer key loaded! Enter access code.', 'success', 3000);
     }
   });
   
@@ -5062,13 +4967,13 @@ window.addEventListener('load', async function() {
     initPowerLossProtection();
   }, 1000);
   
-  console.log('✅ System fully initialized with auto-full-screen and auto-click');
+  console.log('✅ System fully initialized with IMMEDIATE auto-full-screen and auto-click');
 });
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
 console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
-console.log("🖱️ Auto-click system enabled: Clicks every 20 seconds to prevent screen sleep");
+console.log("🖱️ IMMEDIATE Auto-click system enabled: Starts immediately, clicks every 15 seconds");
 console.log("🎯 Auto-hotspot clicks: Every 15 seconds on screen corners");
 console.log("🔋 Keep-awake system: Wake Lock, silent video, keyboard activity, safe click zones");
 </script>
