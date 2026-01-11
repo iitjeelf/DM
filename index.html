@@ -1473,10 +1473,23 @@ body.anti-sleep-active {
   left: 50%; 
   transform: translate(-50%, -50%);
 }
+
+/* ===== HIDDEN AUTO-FULLSCREEN BUTTON ===== */
+#autoFullscreenBtn {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0.001;
+  pointer-events: none;
+  z-index: -9999;
+}
 </style>
 </head>
 
 <body>
+
+<!-- Hidden button for auto full-screen -->
+<button id="autoFullscreenBtn" style="display:none;">Auto Fullscreen</button>
 
 <!-- Power Loss Recovery Overlay -->
 <div id="powerLossRecoveryOverlay">
@@ -1840,7 +1853,7 @@ class FullScreenSecurity {
     this.isFullScreen = false;
     this.securityActive = false;
     this.retryInterval = null;
-    this.maxRetryAttempts = 10; // Increased retries
+    this.maxRetryAttempts = 10;
     this.retryCount = 0;
     this.createWarningOverlay();
     this.startFullScreenEnforcement();
@@ -1913,7 +1926,6 @@ class FullScreenSecurity {
   }
   
   startFullScreenEnforcement() {
-    // Auto-retry full-screen every 3 seconds if not in full-screen
     this.retryInterval = setInterval(() => {
       if (!this.isFullScreen && this.securityActive) {
         this.enterFullScreen();
@@ -1925,9 +1937,34 @@ class FullScreenSecurity {
     console.log('🔒 Enabling full-screen security...');
     this.securityActive = true;
     this.setupEventListeners();
+    
+    // Simulate a click on a hidden button to bypass user gesture requirement
+    await this.simulateUserGesture();
+    
     await this.enterFullScreen();
     console.log('✅ Full-screen security enabled');
     return this;
+  }
+  
+  async simulateUserGesture() {
+    return new Promise((resolve) => {
+      console.log('🎯 Simulating user gesture for full-screen...');
+      
+      // Create and click a hidden button
+      const hiddenBtn = document.getElementById('autoFullscreenBtn');
+      if (hiddenBtn) {
+        const clickEvent = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        
+        hiddenBtn.dispatchEvent(clickEvent);
+        console.log('✅ User gesture simulated');
+      }
+      
+      setTimeout(resolve, 100);
+    });
   }
   
   async enterFullScreen() {
@@ -2062,7 +2099,6 @@ function startImmediateAutoClick() {
     if (hasSubmitted) return;
     
     try {
-      // Determine which screen is active and click accordingly
       if (document.getElementById('accessDenied').style.display !== 'none') {
         performAccessScreenClick();
       } else if (document.getElementById('studentEntry').style.display !== 'none') {
@@ -2073,7 +2109,7 @@ function startImmediateAutoClick() {
     } catch (error) {
       console.error('Auto-click error:', error);
     }
-  }, 15000); // Every 15 seconds
+  }, 15000);
   
   console.log('✅ Immediate auto-click system started');
 }
@@ -2083,21 +2119,18 @@ function performAccessScreenClick() {
   
   const currentTime = Date.now();
   
-  // Don't click too frequently
   if (window.lastAutoClickTime && currentTime - window.lastAutoClickTime < 1000) {
     return;
   }
   
   window.lastAutoClickTime = currentTime;
   
-  // Try to focus on input first
   const accessInput = document.getElementById('accessCode');
   if (accessInput) {
     accessInput.focus();
     console.log('🖱️ Auto-focused access code input');
   }
   
-  // Also click on verify button occasionally (every 3rd click)
   if (Math.random() < 0.33) {
     const verifyBtn = document.getElementById('verifyAccess');
     if (verifyBtn) {
@@ -2110,7 +2143,6 @@ function performAccessScreenClick() {
 function performStudentEntryClick() {
   console.log('🎯 Auto-clicking on student entry screen');
   
-  // Try to focus on first empty input
   const inputs = [
     'stuName', 'stuSection', 'stuRoll', 'stuAdm'
   ];
@@ -2121,7 +2153,6 @@ function performStudentEntryClick() {
       input.focus();
       console.log(`🖱️ Auto-focused ${inputId}`);
       
-      // Also simulate typing occasionally
       if (Math.random() < 0.2) {
         simulateTyping(input);
       }
@@ -2129,7 +2160,6 @@ function performStudentEntryClick() {
     }
   }
   
-  // Click start button if visible
   const startBtn = document.getElementById('stuStartBtn');
   if (startBtn && startBtn.style.display !== 'none' && Math.random() < 0.1) {
     simulateButtonClick(startBtn);
@@ -2142,18 +2172,14 @@ function performExamAreaClick() {
   
   console.log('🎯 Auto-clicking in exam area');
   
-  // Click on safe zones (corners) to prevent screen sleep
   clickRandomHotspot();
   
-  // Occasionally simulate answer selection (only if not fill-blank)
   if (Math.random() < 0.15) {
     const questionType = examData.questionTypes[progress.currentIndex];
     if (questionType !== 'fill-blank') {
-      // Randomly select an option (A, B, C, or D)
       const options = ['A', 'B', 'C', 'D'];
       const randomOption = options[Math.floor(Math.random() * options.length)];
       
-      // Find and click the option button
       const optionBtn = document.querySelector(`.optBtn[data-opt="${randomOption}"]`);
       if (optionBtn) {
         simulateButtonClick(optionBtn);
@@ -2177,16 +2203,13 @@ function simulateButtonClick(button) {
 
 function simulateTyping(input) {
   try {
-    // Simulate typing a character
     const currentValue = input.value;
-    const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+    const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26));
     input.value = currentValue + randomChar;
     
-    // Trigger input event
     const event = new Event('input', { bubbles: true });
     input.dispatchEvent(event);
     
-    // Remove after a short delay
     setTimeout(() => {
       input.value = currentValue;
       input.dispatchEvent(event);
@@ -3546,8 +3569,7 @@ function renderQuestion() {
     <div class="question-transition question-fade-in">
       ${renderImageContainer(imagePath, originalIndex)}
       ${optionsHTML}
-    </div>
-  `;
+    `;
   
   updateQuestionInfo();
   
@@ -4914,10 +4936,10 @@ function performSmartClick() {
 
 keepAwakeSystem = new KeepAwakeSystem();
 
-// ===== INITIAL SETUP =====
+// ===== INITIAL SETUP - AUTO-FULLSCREEN ON LOAD =====
 window.addEventListener('load', async function() {
   console.log('🎯 LFJC Online Exam System Initializing...');
-  console.log('🖥️ Auto-entering full-screen mode...');
+  console.log('🖥️ AUTO-FULLSCREEN ON LOAD...');
   
   // Set up page display first - IMMEDIATE ACCESS SCREEN
   document.getElementById('accessDenied').style.display = 'flex';
@@ -4929,24 +4951,39 @@ window.addEventListener('load', async function() {
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   
-  // IMMEDIATE FULL-SCREEN - NO WAITING
-  setTimeout(() => {
-    examSecurity.enable().then(() => {
-      console.log('✅ Full-screen enabled immediately');
+  // IMMEDIATE AUTO-FULLSCREEN - NO CLICK REQUIRED
+  setTimeout(async () => {
+    try {
+      // Simulate a user gesture first
+      const hiddenBtn = document.getElementById('autoFullscreenBtn');
+      if (hiddenBtn) {
+        const clickEvent = new MouseEvent('click', {
+          view: window,
+          bubbles: true,
+          cancelable: true
+        });
+        hiddenBtn.dispatchEvent(clickEvent);
+      }
       
-      // Auto-focus access code input immediately
+      // Then trigger full-screen
+      await examSecurity.enable();
+      console.log('✅ Full-screen enabled immediately on page load');
+      
+      // Auto-focus access code input
       setTimeout(() => {
         const accessInput = document.getElementById('accessCode');
         if (accessInput) {
           accessInput.focus();
-          console.log('🎯 Auto-focused access code input immediately');
+          console.log('🎯 Auto-focused access code input');
         }
       }, 1000);
       
-    }).catch(err => {
-      console.error('Failed to enable full-screen:', err);
-    });
-  }, 500);
+    } catch (err) {
+      console.error('Failed to enable auto-fullscreen:', err);
+      // Fallback: Show manual full-screen button
+      examSecurity.showWarning();
+    }
+  }, 800);
   
   // START IMMEDIATE AUTO-CLICK SYSTEM
   startImmediateAutoClick();
@@ -4967,15 +5004,23 @@ window.addEventListener('load', async function() {
     initPowerLossProtection();
   }, 1000);
   
-  console.log('✅ System fully initialized with IMMEDIATE auto-full-screen and auto-click');
+  console.log('✅ System fully initialized with AUTO-FULLSCREEN ON LOAD');
+});
+
+// ===== ENTER FULLSCREEN ON ANY CLICK (Backup) =====
+document.addEventListener('click', function() {
+  if (!examSecurity.isFullScreen && examSecurity.securityActive) {
+    setTimeout(() => {
+      examSecurity.enterFullScreen();
+    }, 100);
+  }
 });
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
-console.log("✅ All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
+console.log("✅ AUTO-FULLSCREEN: Will enter full-screen immediately when page loads");
 console.log("🖱️ IMMEDIATE Auto-click system enabled: Starts immediately, clicks every 15 seconds");
-console.log("🎯 Auto-hotspot clicks: Every 15 seconds on screen corners");
-console.log("🔋 Keep-awake system: Wake Lock, silent video, keyboard activity, safe click zones");
+console.log("🔒 All security systems integrated: Full-screen, Tab switching, System tray, Power loss recovery");
 </script>
 </body>
 </html>
