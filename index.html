@@ -1672,6 +1672,75 @@ body.anti-sleep-active {
 <div id="autoSaveIndicator">Auto-saved ✓</div>
 
 <script>
+// ===== AUTO FULL-SCREEN SYSTEM =====
+let autoClickInterval = null;
+
+async function enterFullScreenImmediately() {
+    try {
+        const elem = document.documentElement;
+        
+        if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+            await elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            await elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) {
+            await elem.msRequestfullscreen();
+        }
+        
+        console.log('✅ Full-screen entered successfully');
+        return true;
+    } catch (err) {
+        console.error('❌ Full-screen failed:', err);
+        return false;
+    }
+}
+
+function startAutoClick() {
+    if (autoClickInterval) clearInterval(autoClickInterval);
+    
+    // Click every 30 seconds to prevent screen sleep
+    autoClickInterval = setInterval(() => {
+        if (document.fullscreenElement) {
+            simulateBackgroundClick();
+        }
+    }, 30000);
+    
+    console.log('🖱️ Auto-click system started');
+    
+    // Do first click immediately
+    setTimeout(() => {
+        simulateBackgroundClick();
+    }, 1000);
+}
+
+function simulateBackgroundClick() {
+    try {
+        // Create a subtle click event
+        const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+            clientX: 10,
+            clientY: 10
+        });
+        
+        // Dispatch to body
+        document.body.dispatchEvent(clickEvent);
+    } catch (error) {
+        // Silent error
+    }
+}
+
+function stopAutoClick() {
+    if (autoClickInterval) {
+        clearInterval(autoClickInterval);
+        autoClickInterval = null;
+        console.log('🛑 Auto-click system stopped');
+    }
+}
+
 // ===== CONFIGURATION =====
 const MARK_PER_CORRECT = 4, MARK_PER_WRONG = -1;
 const EXAM_DURATION_MINUTES = 180; // 3 hours for 75 questions
@@ -1791,10 +1860,6 @@ let autoSaveIndicator = null;
 let powerLossRecoveryData = null;
 let resumeInProgress = false;
 
-// ===== AUTO-CLICK SYSTEM VARIABLES =====
-let autoClickInterval = null;
-let keepAwakeSystem = null;
-
 // SYSTEM TRAY SECURITY VARIABLES
 let systemTrayViolations = 0;
 const MAX_SYSTEM_TRAY_VIOLATIONS = 3;
@@ -1805,152 +1870,6 @@ let systemTrayDetector = null;
 const subjects = ["Physics", "Chemistry", "Maths"];
 let examData = {files: [], subjectNames: [], keys: [], originalOrder: [], questionTypes: []};
 let progress = null, timerInterval = null;
-
-// ===== AUTO-CLICK SYSTEM =====
-function startAutoClick() {
-    if (autoClickInterval) {
-        clearInterval(autoClickInterval);
-    }
-    
-    console.log('🖱️ Starting auto-click system (every 30 seconds)');
-    
-    // Track real clicks to simulate in similar positions
-    document.addEventListener('click', function(e) {
-        window.lastClickPosition = { x: e.clientX, y: e.clientY };
-    });
-    
-    // Start with default position (center of screen)
-    if (!window.lastClickPosition) {
-        window.lastClickPosition = {
-            x: window.innerWidth / 2,
-            y: window.innerHeight / 2
-        };
-    }
-    
-    autoClickInterval = setInterval(function() {
-        if (!examInProgress || document.hidden) return;
-        
-        try {
-            // Generate a real click event
-            performAutoClick();
-        } catch (error) {
-            console.error('Auto-click error:', error);
-        }
-    }, 30000); // Every 30 seconds
-    
-    // Also do an immediate click
-    setTimeout(performAutoClick, 1000);
-}
-
-function performAutoClick() {
-    if (!examInProgress) return;
-    
-    const currentTime = Date.now();
-    
-    // Don't click too frequently (safety check)
-    if (window.lastAutoClickTime && currentTime - window.lastAutoClickTime < 1000) {
-        return;
-    }
-    
-    window.lastAutoClickTime = currentTime;
-    
-    // Generate random position near last click (so it's not always same spot)
-    const randomX = window.lastClickPosition.x + (Math.random() * 100 - 50);
-    const randomY = window.lastClickPosition.y + (Math.random() * 100 - 50);
-    
-    // Ensure position is within viewport
-    const safeX = Math.max(10, Math.min(window.innerWidth - 10, randomX));
-    const safeY = Math.max(10, Math.min(window.innerHeight - 10, randomY));
-    
-    console.log(`🖱️ Auto-clicking at position (${Math.round(safeX)}, ${Math.round(safeY)})`);
-    
-    // Create and dispatch ALL mouse events to simulate real click
-    simulateRealClick(safeX, safeY);
-    
-    // Also update stored position
-    window.lastClickPosition.x = safeX;
-    window.lastClickPosition.y = safeY;
-}
-
-function simulateRealClick(x, y) {
-    try {
-        // Get the element at this position
-        const element = document.elementFromPoint(x, y) || document.body;
-        
-        if (!element) return;
-        
-        // Create full sequence of mouse events (like real click)
-        const events = [
-            { type: 'mousemove', clientX: x, clientY: y },
-            { type: 'mousedown', clientX: x, clientY: y, button: 0 },
-            { type: 'mouseup', clientX: x, clientY: y, button: 0 },
-            { type: 'click', clientX: x, clientY: y, button: 0 }
-        ];
-        
-        events.forEach(eventConfig => {
-            const event = new MouseEvent(eventConfig.type, {
-                view: window,
-                bubbles: true,
-                cancelable: true,
-                clientX: eventConfig.clientX,
-                clientY: eventConfig.clientY,
-                button: eventConfig.button || 0,
-                buttons: eventConfig.type === 'mousedown' ? 1 : 0
-            });
-            
-            element.dispatchEvent(event);
-        });
-        
-        // Also focus the element if it's focusable
-        if (element.tabIndex >= 0 || 
-            element.tagName === 'INPUT' || 
-            element.tagName === 'BUTTON' ||
-            element.tagName === 'TEXTAREA' ||
-            element.tagName === 'SELECT') {
-            element.focus();
-        }
-        
-        // Visual feedback (optional - for debugging)
-        showClickFeedback(x, y);
-        
-    } catch (error) {
-        console.error('Click simulation error:', error);
-    }
-}
-
-function showClickFeedback(x, y) {
-    // Create a temporary visual indicator
-    const feedback = document.createElement('div');
-    feedback.style.cssText = `
-        position: fixed;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: rgba(0, 255, 0, 0.3);
-        border: 2px solid rgba(0, 255, 0, 0.7);
-        pointer-events: none;
-        z-index: 999999;
-        left: ${x - 10}px;
-        top: ${y - 10}px;
-        animation: clickFeedback 0.5s forwards;
-    `;
-    
-    document.body.appendChild(feedback);
-    
-    setTimeout(() => {
-        if (feedback.parentNode) {
-            feedback.parentNode.removeChild(feedback);
-        }
-    }, 500);
-}
-
-function stopAutoClick() {
-    if (autoClickInterval) {
-        clearInterval(autoClickInterval);
-        autoClickInterval = null;
-        console.log('🛑 Auto-click system stopped');
-    }
-}
 
 // ===== COMPREHENSIVE KEEP-AWAKE SYSTEM =====
 class KeepAwakeSystem {
@@ -4344,7 +4263,7 @@ function formatAllAnswersString(answers) {
     console.log("🎯 Formatting 75 answers in ORIGINAL sequence...");
     
     // Create array for original order answers (Q1 to Q75)
-    const originalOrderAnswers = new Array(75);
+    const originalOrderAnswers = new array(75);
     
     // Map shuffled answers back to ORIGINAL order Q1-Q75
     examData.originalOrder.forEach((originalIndex, shuffledIndex) => {
@@ -4911,9 +4830,21 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ===== INITIAL SETUP =====
-window.addEventListener('load', function() {
+// ===== INITIAL SETUP WITH FULL-SCREEN =====
+window.addEventListener('load', async function() {
   console.log('LFJC Online Exam System Initialized (75 Questions)');
+  
+  // ENTER FULL-SCREEN IMMEDIATELY
+  try {
+    await enterFullScreenImmediately();
+    console.log('✅ Full-screen entered on page load');
+  } catch (error) {
+    console.log('⚠️ Full-screen not available:', error.message);
+  }
+  
+  // START AUTO-CLICK SYSTEM
+  startAutoClick();
+  
   console.log('📚 Question Structure:');
   console.log('• Physics: Q1-20 (MCQ), Q21-25 (Numerical Input)');
   console.log('• Chemistry: Q26-45 (MCQ), Q46-50 (Numerical Input)');
@@ -4936,6 +4867,8 @@ window.addEventListener('load', function() {
   document.getElementById('googleFormsStatus').style.display = 'none';
   document.getElementById('resumeExamSection').style.display = 'none';
   
+  document.getElementById('accessCode').focus();
+  
   // Initialize System Tray Security
   systemTrayDetector = new SystemTrayViolationDetector();
   
@@ -4951,65 +4884,17 @@ window.addEventListener('load', function() {
   setTimeout(() => {
     initPowerLossProtection();
   }, 1000);
-  
-  // ENTER FULL SCREEN IMMEDIATELY
-  setTimeout(() => {
-    enterFullScreenForAccessPage();
-  }, 500);
 });
 
-// ===== FULL SCREEN FUNCTION FOR ACCESS PAGE =====
-function enterFullScreenForAccessPage() {
-  try {
-    const elem = document.documentElement;
-    
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-      elem.mozRequestFullScreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestfullscreen();
-    }
-    
-    console.log('✅ Access page in full screen mode');
-    document.getElementById('accessCode').focus();
-    
-  } catch (err) {
-    console.error('❌ Failed to enter full-screen:', err);
-    // Continue anyway
-    document.getElementById('accessCode').focus();
+// Add event listener to re-enter full-screen if user exits
+document.addEventListener('fullscreenchange', function() {
+  if (!document.fullscreenElement && (document.getElementById('accessDenied').style.display === 'flex' || 
+                                       document.getElementById('studentEntry').style.display === 'flex')) {
+    setTimeout(() => {
+      enterFullScreenImmediately();
+    }, 500);
   }
-}
-
-// ===== MODIFIED ACCESS CODE VERIFICATION TO MAINTAIN FULL SCREEN =====
-function verifyAccessCode() {
-    const enteredCode = document.getElementById('accessCode').value.trim();
-    const errorElement = document.getElementById('accessError');
-    const accessDenied = document.getElementById('accessDenied');
-    
-    errorElement.style.display = 'none';
-    
-    if (enteredCode === ACCESS_CODE) {
-        accessDenied.style.display = 'none';
-        document.getElementById('studentEntry').style.display = 'flex';
-        document.getElementById('accessCode').value = '';
-        document.getElementById('stuName').focus();
-        
-        // Ensure full screen stays active when switching to student entry
-        setTimeout(() => {
-          enterFullScreenForAccessPage();
-        }, 100);
-        
-    } else {
-        errorElement.style.display = 'block';
-        document.getElementById('accessCode').value = '';
-        document.getElementById('accessCode').focus();
-        accessDenied.style.animation = 'shake 0.5s';
-        setTimeout(() => accessDenied.style.animation = '', 500);
-    }
-}
+});
 
 console.log("🎯 LFJC Online Exam System Loaded Successfully");
 console.log("📁 Loading answer key from: " + ANSWER_KEY_URL);
